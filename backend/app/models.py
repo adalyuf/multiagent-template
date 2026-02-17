@@ -52,4 +52,4 @@ class Anomaly(Base):
     anomaly_type = Column(String(50), nullable=False)
     severity = Column(String(20), nullable=False, default="medium")
     message = Column(String(500), nullable=False, default="")
-    detected_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    detected_at = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
