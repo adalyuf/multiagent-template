@@ -86,7 +86,7 @@ export default function CladeTrends({ data }) {
           View Genomics Dashboard →
         </Link>
       </div>
-      <svg ref={svgRef} style={{ width: '100%', height: 'auto' }} />
+      <svg ref={svgRef} style={{ width: '100%', height: 'auto' }} role="img" aria-label="Stacked area chart showing clade trends over time" />
     </div>
   )
 }

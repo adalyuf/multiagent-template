@@ -23,6 +23,7 @@ const styles = {
     whiteSpace: 'nowrap',
     color: '#fca5a5',
   },
+  severityText: { fontWeight: 600, color: '#fecaca' },
   dot: (severity) => ({
     width: 8,
     height: 8,
@@ -45,7 +46,10 @@ export default function AlertBar({ anomalies }) {
     <div style={styles.bar}>
       {anomalies.map((a, i) => (
         <div key={a.id || i} style={styles.chip}>
-          <span style={styles.dot(a.severity)} />
+          <span style={styles.dot(a.severity)} aria-hidden="true" />
+          <span style={styles.severityText}>
+            {a.severity === 'high' ? 'High' : 'Medium'}:
+          </span>
           {a.message}
         </div>
       ))}
