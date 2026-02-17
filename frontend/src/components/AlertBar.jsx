@@ -33,6 +33,15 @@ const styles = {
   empty: { fontSize: '0.8rem', color: '#666' },
 }
 
+function severityLabel(severity) {
+  const value = String(severity || '').toLowerCase()
+  if (value === 'high') return 'High'
+  if (value === 'medium') return 'Medium'
+  if (value === 'low') return 'Low'
+  if (value === 'unknown') return 'Unknown'
+  return value ? `${value.charAt(0).toUpperCase()}${value.slice(1)}` : 'Unknown'
+}
+
 export default function AlertBar({ anomalies, loadError }) {
   if (loadError) {
     return (
@@ -56,7 +65,7 @@ export default function AlertBar({ anomalies, loadError }) {
         <div key={a.id || i} style={styles.chip}>
           <span style={styles.dot(a.severity)} aria-hidden="true" />
           <span style={styles.severityText}>
-            {a.severity === 'high' ? 'High' : 'Medium'}:
+            {severityLabel(a.severity)}:
           </span>
           {a.message}
         </div>
