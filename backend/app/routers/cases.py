@@ -1,9 +1,10 @@
-from datetime import date, timedelta
+from datetime import date
 from fastapi import APIRouter, Query
 from sqlalchemy import select, func, desc, text
 from app.database import async_session
 from app.models import FluCase
 from app.schemas import CaseSummary, MapDataPoint, HistoricalPoint, SubtypePoint, CountryRow
+from app.utils import weeks_ago
 
 router = APIRouter()
 
@@ -34,8 +35,8 @@ async def cases_summary():
         if not max_date:
             return CaseSummary()
 
-        current_cutoff = max_date - timedelta(weeks=1)
-        prior_cutoff = max_date - timedelta(weeks=2)
+        current_cutoff = weeks_ago(max_date, 1)
+        prior_cutoff = weeks_ago(max_date, 2)
 
         total_r = await session.execute(select(func.sum(FluCase.new_cases)))
         total = total_r.scalar() or 0
@@ -76,7 +77,7 @@ async def cases_map():
         if not max_date:
             return []
 
-        cutoff = max_date - timedelta(weeks=4)
+        cutoff = weeks_ago(max_date, 4)
         q = (
             select(
                 FluCase.country_code,
@@ -141,7 +142,7 @@ async def cases_subtypes():
         if not max_date:
             return []
 
-        cutoff = max_date - timedelta(weeks=52)
+        cutoff = weeks_ago(max_date, 52)
         q = (
             select(
                 FluCase.time,
@@ -172,8 +173,8 @@ async def cases_countries(
         if not max_date:
             return []
 
-        cutoff = max_date - timedelta(weeks=4)
-        prior_cutoff = max_date - timedelta(weeks=56)
+        cutoff = weeks_ago(max_date, 4)
+        prior_cutoff = weeks_ago(max_date, 56)
 
         # Current period totals
         q = (
@@ -189,8 +190,8 @@ async def cases_countries(
         current_data = {r.country_code: r.total for r in result}
 
         # Prior year same period
-        prior_start = cutoff - timedelta(weeks=52)
-        prior_end = cutoff - timedelta(weeks=48)
+        prior_start = weeks_ago(cutoff, 52)
+        prior_end = weeks_ago(cutoff, 48)
         prior_q = (
             select(
                 FluCase.country_code,
@@ -220,7 +221,7 @@ async def cases_countries(
                 dominant[r.country_code] = r.flu_type
 
         # Sparkline data (last 12 weeks)
-        spark_cutoff = max_date - timedelta(weeks=12)
+        spark_cutoff = weeks_ago(max_date, 12)
         spark_q = (
             select(
                 FluCase.country_code,
