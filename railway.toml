@@ -1,0 +1,8 @@
+[build]
+# Railway auto-detects Dockerfiles per service.
+# Deploy backend and frontend as separate Railway services,
+# each pointing to their respective subdirectory.
+
+# Backend service: set root to /backend
+# Frontend service: set root to /frontend
+#   Set env vars: BACKEND_URL=http://backend.railway.internal:8000

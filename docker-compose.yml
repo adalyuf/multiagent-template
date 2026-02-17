@@ -4,15 +4,15 @@ services:
   db:
     image: postgres:16
     environment:
-      POSTGRES_USER: flutracker
-      POSTGRES_PASSWORD: flutracker
-      POSTGRES_DB: flutracker
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U flutracker"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -22,16 +22,31 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql://flutracker:flutracker@db:5432/flutracker
+      DATABASE_URL: ${DATABASE_URL}
     depends_on:
       db:
         condition: service_healthy
     restart: unless-stopped
+    develop:
+      watch:
+        - action: sync
+          path: ./backend/app
+          target: /app/app
+        - action: sync
+          path: ./backend/tests
+          target: /app/tests
+        - action: rebuild
+          path: ./backend/requirements.txt
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: ${VITE_API_URL:-}
     ports:
-      - "5173:5173"
+      - "80:80"
+    environment:
+      BACKEND_URL: ${BACKEND_URL:-http://backend:8000}
     depends_on:
       - backend
     restart: unless-stopped
