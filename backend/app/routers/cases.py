@@ -3,28 +3,15 @@ from fastapi import APIRouter, Query
 from sqlalchemy import select, func, desc, text
 from app.database import async_session
 from app.models import FluCase
+from app.population import get_population
 from app.schemas import CaseSummary, MapDataPoint, HistoricalPoint, SubtypePoint, CountryRow
 from app.utils import weeks_ago
 
 router = APIRouter()
 
-# Rough population data for per-100k calculations (millions)
-POPULATIONS = {
-    "US": 331, "CN": 1412, "IN": 1408, "BR": 214, "RU": 144, "JP": 125,
-    "DE": 83, "GB": 67, "FR": 65, "IT": 59, "CA": 38, "AU": 26,
-    "ES": 47, "MX": 129, "KR": 52, "ID": 274, "TR": 85, "SA": 35,
-    "ZA": 60, "AR": 46, "PL": 38, "NL": 17, "TH": 72, "EG": 104,
-    "PH": 114, "VN": 98, "BD": 170, "PK": 225, "NG": 218, "ET": 120,
-    "CL": 19, "CO": 51, "PE": 34, "MY": 33, "TW": 24, "SE": 10,
-    "NO": 5, "DK": 6, "FI": 6, "CH": 9, "AT": 9, "BE": 12,
-    "PT": 10, "CZ": 11, "GR": 11, "IE": 5, "NZ": 5, "SG": 6,
-    "IL": 10, "HK": 7, "AE": 10, "QA": 3, "KW": 4,
-}
-
-
 def _per_100k(cases: int, cc: str) -> float:
-    pop = POPULATIONS.get(cc, 50)
-    return round(cases / (pop * 10000) * 100000, 2) if pop else 0
+    pop = get_population(cc)
+    return round(cases / pop * 100000, 2) if pop else 0
 
 
 @router.get("/cases/summary", response_model=CaseSummary)

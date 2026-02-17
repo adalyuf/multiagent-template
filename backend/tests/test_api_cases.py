@@ -5,6 +5,7 @@ from datetime import date
 import pytest
 
 from app.models import FluCase
+from app.population import POPULATIONS
 
 
 @pytest.mark.asyncio
@@ -73,8 +74,8 @@ async def test_cases_map_computes_per_100k(client, db_session):
 
     assert data["US"]["total_cases"] == 331
     assert data["GB"]["total_cases"] == 67
-    assert data["US"]["per_100k"] == 10.0
-    assert data["GB"]["per_100k"] == 10.0
+    assert data["US"]["per_100k"] == round(331 / POPULATIONS["US"] * 100000, 2)
+    assert data["GB"]["per_100k"] == round(67 / POPULATIONS["GB"] * 100000, 2)
 
 
 @pytest.mark.asyncio
