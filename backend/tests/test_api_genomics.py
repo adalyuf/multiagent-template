@@ -87,12 +87,15 @@ async def test_genomics_trends_empty(client):
 
 @pytest.mark.asyncio
 async def test_genomics_trends_with_data(client, seed_genomic_sequences):
-    # date_trunc is PostgreSQL-specific and unavailable on SQLite.
-    # This test verifies the endpoint works on PG; on SQLite we accept the error.
-    try:
-        resp = await client.get("/api/genomics/trends?years=5")
-        # If we get here (PostgreSQL), verify shape
-        assert resp.status_code in (200, 500)
-    except Exception:
-        # SQLite raises OperationalError for date_trunc — expected
-        pass
+    resp = await client.get("/api/genomics/trends?years=5")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert len(data) > 0
+    # All seed data is from 2025-05, so there should be one month bucket
+    dates = {item["date"] for item in data}
+    assert "2025-05-01" in dates
+    # Verify response shape
+    for item in data:
+        assert "date" in item
+        assert "clade" in item
+        assert "count" in item

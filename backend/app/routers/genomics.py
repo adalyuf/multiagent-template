@@ -1,6 +1,6 @@
 from datetime import date, timedelta
 from fastapi import APIRouter, Query
-from sqlalchemy import select, func, desc
+from sqlalchemy import select, func, desc, cast, String
 from app.database import async_session
 from app.models import GenomicSequence
 from app.schemas import GenomicTrendPoint, GenomicSummary, GenomicCountryRow
@@ -37,10 +37,13 @@ async def genomic_trends(
         if not top_clades:
             return []
 
-        # Monthly trends for top clades
+        # Monthly trends for top clades — use extract() for DB-agnostic grouping
+        year_col = func.extract("year", GenomicSequence.collection_date).label("yr")
+        month_col = func.extract("month", GenomicSequence.collection_date).label("mn")
         q = (
             select(
-                func.date_trunc("month", GenomicSequence.collection_date).label("month"),
+                year_col,
+                month_col,
                 GenomicSequence.clade,
                 func.sum(GenomicSequence.count).label("total"),
             )
@@ -48,8 +51,8 @@ async def genomic_trends(
                 GenomicSequence.collection_date >= cutoff,
                 GenomicSequence.clade.in_(top_clades),
             )
-            .group_by("month", GenomicSequence.clade)
-            .order_by("month")
+            .group_by(year_col, month_col, GenomicSequence.clade)
+            .order_by(year_col, month_col)
         )
         if country:
             q = q.where(GenomicSequence.country_code == country)
@@ -57,7 +60,7 @@ async def genomic_trends(
         result = await session.execute(q)
         return [
             GenomicTrendPoint(
-                date=r.month.strftime("%Y-%m-%d") if r.month else "",
+                date=f"{int(r.yr)}-{int(r.mn):02d}-01",
                 clade=r.clade,
                 count=r.total,
             )

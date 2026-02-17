@@ -42,6 +42,7 @@
     "CLAUDE_CONFIG_DIR": "/home/node/.claude",
     "POWERLEVEL9K_DISABLE_GITSTATUS": "true"
   },
+  "postCreateCommand": "sudo chown -R node:node /home/node/.config /home/node/.claude /home/node/.codex",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=delegated",
   "workspaceFolder": "/workspace"
 }

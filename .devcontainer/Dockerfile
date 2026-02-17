@@ -41,8 +41,12 @@ RUN SNIPPET="export PROMPT_COMMAND='history -a' && export HISTFILE=/commandhisto
 ENV DEVCONTAINER=true
 
 # Create workspace and config directories and set permissions
-RUN mkdir -p /workspace /home/node/.claude && \
-  chown -R node:node /workspace /home/node/.claude
+RUN mkdir -p /workspace /home/node/.claude /home/node/.config/gh /home/node/.codex && \
+  chown -R node:node /workspace /home/node/.claude /home/node/.config /home/node/.codex
+
+# Allow node user passwordless sudo (needed for postCreateCommand to fix volume mount ownership)
+RUN echo "node ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/node && \
+  chmod 0440 /etc/sudoers.d/node
 
 WORKDIR /workspace
 
