@@ -2,9 +2,8 @@ import React, { useRef, useEffect, useState } from 'react'
 import * as d3 from 'd3'
 import { api } from '../api'
 
-export default function CompareChart({ countries }) {
+export default function CompareChart() {
   const svgRef = useRef()
-  const [selected, setSelected] = useState(['US', 'GB', 'AU'])
   const [data, setData] = useState(null)
 
   useEffect(() => {
@@ -22,8 +21,6 @@ export default function CompareChart({ countries }) {
     svg.selectAll('*').remove()
     svg.attr('viewBox', `0 0 ${width} ${height}`)
 
-    // For compare, we need per-country data which requires a different endpoint
-    // For now, show global data
     const sorted = [...data].sort((a, b) => a.date.localeCompare(b.date))
     if (sorted.length === 0) return
 
@@ -56,31 +53,11 @@ export default function CompareChart({ countries }) {
       .attr('fill', 'none')
       .attr('stroke', '#f59e0b')
       .attr('stroke-width', 2)
-  }, [data, selected])
-
-  const availableCountries = countries || []
+  }, [data])
 
   return (
     <div style={{ background: '#0d1117', borderRadius: 8, padding: 12, border: '1px solid #2a2a4a' }}>
-      <h3 style={{ fontSize: '0.9rem', color: '#ccc', marginBottom: 8 }}>Country Comparison</h3>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-        {selected.map((cc, i) => (
-          <select
-            key={i}
-            value={cc}
-            onChange={e => {
-              const next = [...selected]
-              next[i] = e.target.value
-              setSelected(next)
-            }}
-            style={{ background: '#1a1a2e', color: '#ccc', border: '1px solid #333', borderRadius: 4, padding: '4px 8px', fontSize: '0.8rem' }}
-          >
-            {['US','GB','AU','CA','DE','FR','JP','BR','IN','CN','KR','MX','ZA','IT','ES'].map(c => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
-        ))}
-      </div>
+      <h3 style={{ fontSize: '0.9rem', color: '#ccc', marginBottom: 8 }}>Global Case Trend</h3>
       <svg ref={svgRef} style={{ width: '100%', height: 'auto' }} />
     </div>
   )
