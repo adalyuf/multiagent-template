@@ -101,38 +101,42 @@ async def genomic_summary():
 @router.get("/countries", response_model=list[GenomicCountryRow])
 async def genomic_countries():
     async with async_session() as session:
-        q = (
+        ranked_clades = (
             select(
                 GenomicSequence.country_code,
-                func.sum(GenomicSequence.count).label("total"),
+                GenomicSequence.clade,
+                func.sum(func.sum(GenomicSequence.count))
+                .over(partition_by=GenomicSequence.country_code)
+                .label("country_total"),
+                func.row_number()
+                .over(
+                    partition_by=GenomicSequence.country_code,
+                    order_by=(desc(func.sum(GenomicSequence.count)), GenomicSequence.clade),
+                )
+                .label("rn"),
             )
-            .group_by(GenomicSequence.country_code)
-            .order_by(desc("total"))
+            .group_by(GenomicSequence.country_code, GenomicSequence.clade)
+            .subquery()
+        )
+
+        q = (
+            select(
+                ranked_clades.c.country_code,
+                ranked_clades.c.country_total,
+                ranked_clades.c.clade,
+            )
+            .where(ranked_clades.c.rn == 1)
+            .order_by(desc(ranked_clades.c.country_total))
             .limit(20)
         )
         result = await session.execute(q)
         rows = list(result)
 
-        # Get top clade per country
-        country_clades = {}
-        for r in rows:
-            clade_q = (
-                select(GenomicSequence.clade, func.sum(GenomicSequence.count).label("total"))
-                .where(GenomicSequence.country_code == r.country_code)
-                .group_by(GenomicSequence.clade)
-                .order_by(desc("total"))
-                .limit(1)
-            )
-            clade_r = await session.execute(clade_q)
-            top = clade_r.first()
-            if top:
-                country_clades[r.country_code] = top.clade
-
         return [
             GenomicCountryRow(
                 country_code=r.country_code,
-                total_sequences=r.total,
-                top_clade=country_clades.get(r.country_code, ""),
+                total_sequences=r.country_total,
+                top_clade=r.clade or "",
             )
             for r in rows
         ]
