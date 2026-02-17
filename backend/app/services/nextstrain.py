@@ -10,6 +10,155 @@ logger = logging.getLogger(__name__)
 
 NEXTSTRAIN_URL = "https://nextstrain.org/charon/getDataset?prefix=/flu/seasonal/h3n2/ha/2y"
 
+# Mapping of Nextstrain country names to ISO 2-letter country codes
+# Nextstrain uses various formats: full names (United States), abbreviations (USA), or ISO codes
+COUNTRY_CODE_MAP = {
+    "UNITED STATES": "US",
+    "USA": "US",
+    "UNITEDSTATES": "US",
+    "UNITED KINGDOM": "GB",
+    "UK": "GB",
+    "UNITEDKINGDOM": "GB",
+    "GB": "GB",
+    "AUSTRALIA": "AU",
+    "CANADA": "CA",
+    "CHINA": "CN",
+    "JAPAN": "JP",
+    "FRANCE": "FR",
+    "GERMANY": "DE",
+    "ITALY": "IT",
+    "SPAIN": "ES",
+    "NETHERLANDS": "NL",
+    "BELGIUM": "BE",
+    "SWITZERLAND": "CH",
+    "SWEDEN": "SE",
+    "NORWAY": "NO",
+    "DENMARK": "DK",
+    "FINLAND": "FI",
+    "IRELAND": "IE",
+    "SCOTLAND": "GB",
+    "WALES": "GB",
+    "ENGLAND": "GB",
+    "NEW ZEALAND": "NZ",
+    "NEWZEALAND": "NZ",
+    "SOUTH KOREA": "KR",
+    "KOREA": "KR",
+    "SOUTHAFRICA": "ZA",
+    "SOUTH AFRICA": "ZA",
+    "RUSSIA": "RU",
+    "RUSSIAN FEDERATION": "RU",
+    "BRAZIL": "BR",
+    "MEXICO": "MX",
+    "ARGENTINA": "AR",
+    "CHILE": "CL",
+    "COLOMBIA": "CO",
+    "PERU": "PE",
+    "EGYPT": "EG",
+    "ISRAEL": "IL",
+    "TURKEY": "TR",
+    "GREECE": "GR",
+    "PORTUGAL": "PT",
+    "AUSTRIA": "AT",
+    "POLAND": "PL",
+    "CZECH REPUBLIC": "CZ",
+    "CZECHIA": "CZ",
+    "HUNGARY": "HU",
+    "ROMANIA": "RO",
+    "INDIA": "IN",
+    "THAILAND": "TH",
+    "VIETNAM": "VN",
+    "SINGAPORE": "SG",
+    "MALAYSIA": "MY",
+    "INDONESIA": "ID",
+    "PHILIPPINES": "PH",
+    "TAIWAN": "TW",
+    "HONG KONG": "HK",
+    "KENYA": "KE",
+    "NIGERIA": "NG",
+    "GHANA": "GH",
+    "SENEGAL": "SN",
+    "MADAGASCAR": "MG",
+    "MOROCCO": "MA",
+    "TUNISIA": "TN",
+    "SAUDI ARABIA": "SA",
+    "UNITED ARAB EMIRATES": "AE",
+    "UAE": "AE",
+    "QATAR": "QA",
+    "KUWAIT": "KW",
+    "BAHRAIN": "BH",
+    "OMAN": "OM",
+    "JORDAN": "JO",
+    "LEBANON": "LB",
+    "SYRIA": "SY",
+    "IRAQ": "IQ",
+    "IRAN": "IR",
+    "PAKISTAN": "PK",
+    "BANGLADESH": "BD",
+    "SRI LANKA": "LK",
+    "NEPAL": "NP",
+    "MYANMAR": "MM",
+    "CAMBODIA": "KH",
+    "LAOS": "LA",
+    "MONGOLIA": "MN",
+    "KAZAKHSTAN": "KZ",
+    "UZBEKISTAN": "UZ",
+    "GEORGIA": "GE",
+    "ARMENIA": "AM",
+    "AZERBAIJAN": "AZ",
+    "UKRAINE": "UA",
+    "BELARUS": "BY",
+    "MOLDOVA": "MD",
+    "ESTONIA": "EE",
+    "LATVIA": "LV",
+    "LITHUANIA": "LT",
+    "SERBIA": "RS",
+    "CROATIA": "HR",
+    "SLOVENIA": "SI",
+    "SLOVAKIA": "SK",
+    "BULGARIA": "BG",
+    "ALBANIA": "AL",
+    "MACEDONIA": "MK",
+    "MONTENEGRO": "ME",
+    "BOSNIA": "BA",
+    "ICELAND": "IS",
+    "LUXEMBOURG": "LU",
+    "MALTA": "MT",
+    "CYPRUS": "CY",
+    "CANARY ISLANDS": "ES",
+    "REUNION": "FR",
+    "GUADELOUPE": "GP",
+    "MARTINIQUE": "MQ",
+    "FRENCH GUIANA": "GF",
+    "NEW CALEDONIA": "NC",
+    "FRENCH POLYNESIA": "PF",
+    "BERMUDA": "BM",
+    "PUERTO RICO": "PR",
+    "HAWAII": "US",
+    "ALASKA": "US",
+}
+
+
+def normalize_country_code(country: str) -> str | None:
+    """
+    Normalize Nextstrain country value to ISO 2-letter country code.
+
+    Returns None for unrecognized countries so callers can skip them.
+    """
+    if not country:
+        return None
+
+    normalized = country.upper().strip()
+
+    if normalized in COUNTRY_CODE_MAP:
+        return COUNTRY_CODE_MAP[normalized]
+
+    # Already a 2-letter ISO code
+    if len(normalized) == 2 and normalized.isalpha():
+        return normalized
+
+    logger.warning("Unknown Nextstrain country: %s", country)
+    return None
+
 
 async def fetch_nextstrain():
     """Fetch genomic data from Nextstrain."""
@@ -36,16 +185,20 @@ def _walk_tree(node: dict, records: list):
 
     if country_val and clade and num_date:
         try:
-            year = int(num_date)
-            frac = num_date - year
-            date_val = datetime(year, 1, 1) + __import__("datetime").timedelta(days=frac * 365.25)
-            records.append({
-                "country_code": country_val[:10],
-                "clade": clade,
-                "lineage": "",
-                "collection_date": date_val.date(),
-                "count": 1,
-            })
+            code = normalize_country_code(country_val)
+            if code is None:
+                pass  # skip unrecognized countries
+            else:
+                year = int(num_date)
+                frac = num_date - year
+                date_val = datetime(year, 1, 1) + __import__("datetime").timedelta(days=frac * 365.25)
+                records.append({
+                    "country_code": code,
+                    "clade": clade,
+                    "lineage": "",
+                    "collection_date": date_val.date(),
+                    "count": 1,
+                })
         except (ValueError, TypeError):
             pass
 

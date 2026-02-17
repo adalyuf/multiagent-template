@@ -18,7 +18,7 @@ from app.models import Base, FluCase, GenomicSequence, Anomaly
 # ---------------------------------------------------------------------------
 # Engine / session that every test will share
 # ---------------------------------------------------------------------------
-TEST_DB_URL = "sqlite+aiosqlite://"
+TEST_DB_URL = "sqlite+aiosqlite:///file:test?mode=memory&cache=shared&uri=true"
 
 engine = create_async_engine(TEST_DB_URL, echo=False)
 TestSession = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)

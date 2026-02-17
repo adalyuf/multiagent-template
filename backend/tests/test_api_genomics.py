@@ -1,6 +1,10 @@
 """Tests for /api/genomics/* endpoints."""
 
+from datetime import date
+
 import pytest
+
+from app.models import GenomicSequence
 
 
 @pytest.mark.asyncio
@@ -20,6 +24,41 @@ async def test_genomics_summary_with_data(client, seed_genomic_sequences):
     assert data["countries"] == 2
     assert data["unique_clades"] == 2
     assert data["dominant_clade"] == "2a.3a.1"
+
+
+@pytest.mark.asyncio
+async def test_genomics_summary_dominant_clade_uses_aggregated_totals(client, db_session):
+    rows = [
+        GenomicSequence(
+            country_code="US",
+            clade="A",
+            lineage="",
+            collection_date=date(2025, 1, 1),
+            count=6,
+        ),
+        GenomicSequence(
+            country_code="GB",
+            clade="A",
+            lineage="",
+            collection_date=date(2025, 1, 1),
+            count=7,
+        ),
+        GenomicSequence(
+            country_code="US",
+            clade="B",
+            lineage="",
+            collection_date=date(2025, 1, 1),
+            count=12,
+        ),
+    ]
+    db_session.add_all(rows)
+    await db_session.commit()
+
+    resp = await client.get("/api/genomics/summary")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["total_sequences"] == 25
+    assert data["dominant_clade"] == "A"
 
 
 @pytest.mark.asyncio
