@@ -52,4 +52,9 @@ class Anomaly(Base):
     anomaly_type = Column(String(50), nullable=False)
     severity = Column(String(20), nullable=False, default="medium")
     message = Column(String(500), nullable=False, default="")
+    # Single-column index: /api/anomalies orders by detected_at only (no
+    # additional equality filters on severity or anomaly_type), so a composite
+    # index would not improve that query.
+    # For existing deployments run migrations/add_anomaly_detected_at_index.sql
+    # which uses CREATE INDEX CONCURRENTLY to avoid locking the table.
     detected_at = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
