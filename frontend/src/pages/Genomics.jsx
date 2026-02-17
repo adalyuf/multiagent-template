@@ -5,6 +5,7 @@ import { useApi } from '../hooks/useApi'
 import KpiCards from '../components/KpiCards'
 import CladeTrends from '../components/CladeTrends'
 import GenomicsTable from '../components/GenomicsTable'
+import ErrorBoundary from '../components/ErrorBoundary'
 
 export default function Genomics() {
   const [years, setYears] = useState(1)
@@ -72,17 +73,17 @@ export default function Genomics() {
 
       {/* KPIs */}
       <div style={{ padding: '0 24px 16px' }}>
-        <KpiCards data={summary} />
+        <ErrorBoundary><KpiCards data={summary} /></ErrorBoundary>
       </div>
 
       {/* Clade trends chart */}
       <div style={{ padding: '0 24px 16px' }}>
-        <CladeTrends data={trends} />
+        <ErrorBoundary><CladeTrends data={trends} /></ErrorBoundary>
       </div>
 
       {/* Countries table */}
       <div style={{ padding: '0 24px 24px' }}>
-        <GenomicsTable data={countries} />
+        <ErrorBoundary><GenomicsTable data={countries} /></ErrorBoundary>
       </div>
     </div>
   )

@@ -10,6 +10,7 @@ import CladeTrends from '../components/CladeTrends'
 import SubtypeTrends from '../components/SubtypeTrends'
 import CountryTable from '../components/CountryTable'
 import ForecastChart from '../components/ForecastChart'
+import ErrorBoundary from '../components/ErrorBoundary'
 
 const grid2 = {
   display: 'grid',
@@ -32,43 +33,45 @@ export default function Dashboard() {
   return (
     <div style={{ minHeight: '100vh', background: '#0a0a0f' }}>
       <Header lastUpdated={summary ? new Date().toISOString() : null} />
-      <AlertBar anomalies={anomalies} />
+      <ErrorBoundary><AlertBar anomalies={anomalies} /></ErrorBoundary>
 
       {/* Summary KPIs */}
       {summary && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, padding: '16px 24px' }}>
-          <KpiCard label="Total Cases" value={summary.total_cases?.toLocaleString()} />
-          <KpiCard label="Countries Reporting" value={summary.countries_reporting} />
-          <KpiCard label="This Week" value={summary.current_week_cases?.toLocaleString()} />
-          <KpiCard
-            label="Week Change"
-            value={`${summary.week_change_pct >= 0 ? '+' : ''}${summary.week_change_pct?.toFixed(1)}%`}
-            color={summary.week_change_pct >= 0 ? '#ef4444' : '#22c55e'}
-          />
-        </div>
+        <ErrorBoundary>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, padding: '16px 24px' }}>
+            <KpiCard label="Total Cases" value={summary.total_cases?.toLocaleString()} />
+            <KpiCard label="Countries Reporting" value={summary.countries_reporting} />
+            <KpiCard label="This Week" value={summary.current_week_cases?.toLocaleString()} />
+            <KpiCard
+              label="Week Change"
+              value={`${summary.week_change_pct >= 0 ? '+' : ''}${summary.week_change_pct?.toFixed(1)}%`}
+              color={summary.week_change_pct >= 0 ? '#ef4444' : '#22c55e'}
+            />
+          </div>
+        </ErrorBoundary>
       )}
 
       {/* Main grid: Map + Historical */}
       <div style={grid2}>
-        <ChoroplethMap data={mapData} />
-        <HistoricalChart data={historical} />
+        <ErrorBoundary><ChoroplethMap data={mapData} /></ErrorBoundary>
+        <ErrorBoundary><HistoricalChart data={historical} /></ErrorBoundary>
       </div>
 
       {/* Compare + Forecast */}
       <div style={grid2}>
-        <CompareChart />
-        <ForecastChart data={forecast} />
+        <ErrorBoundary><CompareChart /></ErrorBoundary>
+        <ErrorBoundary><ForecastChart data={forecast} /></ErrorBoundary>
       </div>
 
       {/* Secondary: Clade + Subtype */}
       <div style={grid2}>
-        <CladeTrends data={cladeTrends} />
-        <SubtypeTrends data={subtypes} />
+        <ErrorBoundary><CladeTrends data={cladeTrends} /></ErrorBoundary>
+        <ErrorBoundary><SubtypeTrends data={subtypes} /></ErrorBoundary>
       </div>
 
       {/* Country table */}
       <div style={{ padding: '0 24px 24px' }}>
-        <CountryTable data={countries} />
+        <ErrorBoundary><CountryTable data={countries} /></ErrorBoundary>
       </div>
 
       {/* Footer */}
