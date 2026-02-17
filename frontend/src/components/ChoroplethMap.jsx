@@ -5,6 +5,17 @@ import { numericToIso } from '../utils/isoMap'
 import { mapColorScale } from '../utils/colors'
 
 const WORLD_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
+let worldMapPromise = null
+
+async function getWorldMap(url) {
+  if (!worldMapPromise) {
+    worldMapPromise = d3.json(url).catch((err) => {
+      worldMapPromise = null
+      throw err
+    })
+  }
+  return worldMapPromise
+}
 
 export default function ChoroplethMap({ data }) {
   const svgRef = useRef()
@@ -31,8 +42,7 @@ export default function ChoroplethMap({ data }) {
       .attr('fill', '#0d1117')
       .attr('stroke', '#333')
 
-    fetch(WORLD_URL)
-      .then(r => r.json())
+    getWorldMap(WORLD_URL)
       .then(world => {
         const countries = topojson.feature(world, world.objects.countries)
         svg.selectAll('path.country')
