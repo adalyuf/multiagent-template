@@ -2,7 +2,6 @@ import httpx
 import logging
 from datetime import datetime, timedelta
 from collections import defaultdict
-from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from app.database import async_session
 from app.models import FluCase
@@ -208,36 +207,27 @@ async def _upsert_records(records: list[dict]):
         return
 
     async with async_session() as session:
-        # Get existing keys for dedup
-        existing_keys = set()
-        result = await session.execute(
-            select(
-                FluCase.country_code, FluCase.region, FluCase.city,
-                FluCase.flu_type, FluCase.source, FluCase.time
-            )
-        )
-        for row in result:
-            existing_keys.add(tuple(row))
-
-        new_records = []
+        # Deduplicate records within this payload only; existing-row duplicates
+        # are handled by ON CONFLICT DO NOTHING at the database level.
+        deduped_records = []
         seen = set()
         for r in records:
             key = (r["country_code"], r["region"], r["city"],
                    r["flu_type"], r["source"], r["time"])
-            if key not in existing_keys and key not in seen:
+            if key not in seen:
                 seen.add(key)
-                new_records.append(r)
+                deduped_records.append(r)
 
-        if new_records:
+        if deduped_records:
             # Batch insert
-            for i in range(0, len(new_records), 1000):
-                batch = new_records[i:i + 1000]
+            for i in range(0, len(deduped_records), 1000):
+                batch = deduped_records[i:i + 1000]
                 stmt = pg_insert(FluCase).values(batch)
                 stmt = stmt.on_conflict_do_nothing(
                     constraint="uq_flu_case"
                 )
                 await session.execute(stmt)
             await session.commit()
-            logger.info(f"Inserted {len(new_records)} new FluNet records")
+            logger.info(f"Upserted {len(deduped_records)} FluNet records")
         else:
             logger.info("No new FluNet records to insert")
