@@ -5,9 +5,18 @@ import { api } from '../api'
 export default function CompareChart() {
   const svgRef = useRef()
   const [data, setData] = useState(null)
+  const [error, setError] = useState('')
 
   useEffect(() => {
-    api.historical().then(setData).catch(() => {})
+    api.historical()
+      .then((result) => {
+        setData(result)
+        setError('')
+      })
+      .catch((err) => {
+        console.error('Failed to load historical case data for CompareChart', err)
+        setError('Unable to load trend data right now.')
+      })
   }, [])
 
   useEffect(() => {
@@ -58,6 +67,11 @@ export default function CompareChart() {
   return (
     <div style={{ background: '#0d1117', borderRadius: 8, padding: 12, border: '1px solid #2a2a4a' }}>
       <h3 style={{ fontSize: '0.9rem', color: '#ccc', marginBottom: 8 }}>Global Case Trend</h3>
+      {error && (
+        <p style={{ color: '#f87171', margin: '0 0 8px', fontSize: '0.85rem' }}>
+          {error}
+        </p>
+      )}
       <svg ref={svgRef} style={{ width: '100%', height: 'auto' }} />
     </div>
   )
