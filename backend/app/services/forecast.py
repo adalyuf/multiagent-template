@@ -1,6 +1,7 @@
 import logging
 from datetime import timedelta
 from sqlalchemy import select, func
+from app.config import settings
 from app.database import async_session
 from app.models import FluCase
 import numpy as np
@@ -33,7 +34,7 @@ async def generate_forecast(country_code: str = None, weeks_ahead: int = 8):
         values = [float(r.total) for r in rows]
 
         # Simple exponential smoothing
-        alpha = 0.3
+        alpha = settings.FORECAST_ALPHA
         smoothed = [values[0]]
         for v in values[1:]:
             smoothed.append(alpha * v + (1 - alpha) * smoothed[-1])
@@ -60,7 +61,7 @@ async def generate_forecast(country_code: str = None, weeks_ahead: int = 8):
         forecast = []
         for w in range(1, weeks_ahead + 1):
             fd = last_date + timedelta(weeks=w)
-            width = 1.96 * std_residual * (w ** 0.5)
+            width = settings.FORECAST_CI_MULTIPLIER * std_residual * (w ** 0.5)
             forecast.append({
                 "date": fd.isoformat(),
                 "actual": None,
