@@ -162,10 +162,10 @@ async def cases_subtypes():
 
 @router.get("/cases/countries", response_model=list[CountryRow])
 async def cases_countries(
-    search: str = Query("", description="Search filter"),
-    continent: str = Query("", description="Continent filter"),
-    flu_type: str = Query("", description="Flu type filter"),
-    sort: str = Query("cases", description="Sort field"),
+    search: str = Query("", max_length=64, description="Search filter"),
+    continent: str = Query("", max_length=32, description="Continent filter"),
+    flu_type: str = Query("", max_length=32, description="Flu type filter"),
+    sort: str = Query("cases", max_length=32, description="Sort field"),
 ):
     async with async_session() as session:
         max_date_r = await session.execute(select(func.max(FluCase.time)))
