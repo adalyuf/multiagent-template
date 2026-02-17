@@ -17,6 +17,7 @@ export default function StackedAreaChart({
   seriesAccessor,
   title,
   headerAction = null,
+  ariaLabel = '',
 }) {
   const svgRef = useRef()
 
@@ -106,7 +107,12 @@ export default function StackedAreaChart({
         <h3 style={{ fontSize: '0.9rem', color: '#ccc' }}>{title}</h3>
         {headerAction}
       </div>
-      <svg ref={svgRef} style={{ width: '100%', height: 'auto' }} />
+      <svg
+        ref={svgRef}
+        style={{ width: '100%', height: 'auto' }}
+        role="img"
+        aria-label={ariaLabel || title}
+      />
     </div>
   )
 }

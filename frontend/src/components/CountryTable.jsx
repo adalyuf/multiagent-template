@@ -34,7 +34,7 @@ function Sparkline({ data, width = 80, height = 20 }) {
   ).join(' ')
 
   return (
-    <svg width={width} height={height}>
+    <svg width={width} height={height} role="img" aria-label="Weekly country trend sparkline">
       <polyline points={points} fill="none" stroke="#f59e0b" strokeWidth="1.5" />
     </svg>
   )
@@ -73,7 +73,11 @@ export default function CountryTable({ data, selectedCountry = '', onSelectCount
     <div style={styles.container}>
       <h3 style={{ fontSize: '0.9rem', color: '#ccc', marginBottom: 12 }}>Country Dashboard</h3>
       <div style={styles.controls}>
+        <label htmlFor="country-search" style={{ fontSize: '0.8rem', color: '#ccc', alignSelf: 'center' }}>
+          Search countries
+        </label>
         <input
+          id="country-search"
           style={styles.input}
           placeholder="Search countries..."
           value={search}

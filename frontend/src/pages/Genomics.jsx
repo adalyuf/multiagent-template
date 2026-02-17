@@ -47,7 +47,7 @@ export default function Genomics() {
       <div style={{ padding: '16px 24px', display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
         <div style={{ display: 'flex', gap: 4 }}>
           {[1, 3, 5, 10].map(y => (
-            <button key={y} style={btnStyle(years === y)} onClick={() => setYears(y)}>
+            <button key={y} type="button" aria-pressed={years === y} style={btnStyle(years === y)} onClick={() => setYears(y)}>
               {y}yr
             </button>
           ))}
@@ -64,7 +64,7 @@ export default function Genomics() {
         </select>
         <div style={{ display: 'flex', gap: 4 }}>
           {[4, 6, 8].map(n => (
-            <button key={n} style={btnStyle(topN === n)} onClick={() => setTopN(n)}>
+            <button key={n} type="button" aria-pressed={topN === n} style={btnStyle(topN === n)} onClick={() => setTopN(n)}>
               Top {n}
             </button>
           ))}

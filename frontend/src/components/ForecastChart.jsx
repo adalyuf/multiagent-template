@@ -83,7 +83,7 @@ export default function ForecastChart({ data }) {
   return (
     <div style={{ background: '#0d1117', borderRadius: 8, padding: 12, border: '1px solid #2a2a4a' }}>
       <h3 style={{ fontSize: '0.9rem', color: '#ccc', marginBottom: 8 }}>Forecast (8 weeks)</h3>
-      <svg ref={svgRef} style={{ width: '100%', height: 'auto' }} />
+      <svg ref={svgRef} style={{ width: '100%', height: 'auto' }} role="img" aria-label="Forecast chart with confidence interval bands" />
     </div>
   )
 }

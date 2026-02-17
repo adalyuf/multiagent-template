@@ -13,5 +13,6 @@ export default function SubtypeTrends({ data }) {
     yAccessor={(d) => d.cases}
     seriesAccessor={(d) => d.subtype}
     title="Subtype Trends (1 year)"
+    ariaLabel="Stacked area chart showing subtype trends over time"
   />
 }
