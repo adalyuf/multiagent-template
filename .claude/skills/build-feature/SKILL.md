@@ -43,23 +43,31 @@ The main `/workspace` checkout always stays on `main`.
   ```
 - All subsequent file reads, edits, and git commands operate inside `/workspace/.worktrees/<branch>`.
 
-4. Implement fix.
+4. Verify issue-described base state on `main`.
+
+- Before editing, confirm that the key base-state assumption in the issue body is actually true on `origin/main`.
+- Use quick checks (`rg`, targeted file reads, or `gh pr list --search`) from the issue worktree to validate the described starting point.
+- If the described state is not present on `main`:
+  - Note the mismatch in your PR summary.
+  - Adjust implementation to the real `main` state (do not assume pending/unmerged PR state).
+
+5. Implement fix.
 
 - Make the smallest safe change that satisfies acceptance criteria.
 - Update tests only when required by behavior changes.
 
-5. Verify.
+6. Verify.
 
 - Run focused tests first, then broader relevant tests (from within the worktree directory).
 - Record pass/fail summary for PR notes.
 
-6. Commit and push.
+7. Commit and push.
 
 - Stage only intended files (run git commands from the worktree path).
 - Write a specific commit message.
 - Push: `git -C /workspace/.worktrees/<branch> push -u origin <branch>`.
 
-7. Open PR.
+8. Open PR.
 
 - Write the PR body to a temp file, then create the PR:
   ```
@@ -78,11 +86,11 @@ The main `/workspace` checkout always stays on `main`.
   gh pr create --title "<title>" --body-file /tmp/gh-body.md --base main --head <branch>
   ```
 
-8. Apply review label.
+9. Apply review label.
 
 - Add `needs-review` label to the PR and to the issue.
 
-9. Clean up the worktree.
+10. Clean up the worktree.
 
 - First, return to the root workspace so the worktree is not the current directory:
   ```

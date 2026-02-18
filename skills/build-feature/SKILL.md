@@ -43,23 +43,31 @@ Prioritize correctness, minimal diffs, and explicit verification.
   - `git worktree add -b <branch> /workspace/worktrees/<branch> origin/main`
 - Run all following commands from `/workspace/worktrees/<branch>`.
 
-4. Implement fix.
+4. Verify issue-described base state on `main`.
+
+- Before editing, confirm that the key base-state assumption in the issue body is actually true on `origin/main`.
+- Use quick checks (`rg`, targeted file reads, or `gh pr list --search`) from the issue worktree to validate the described starting point.
+- If the described state is not present on `main`:
+  - Note the mismatch in your PR summary.
+  - Adjust implementation to the real `main` state (do not assume pending/unmerged PR state).
+
+5. Implement fix.
 
 - Make the smallest safe change that satisfies acceptance criteria.
 - Update tests only when required by behavior changes.
 
-5. Verify.
+6. Verify.
 
 - Run focused tests first, then broader relevant tests.
 - Record pass/fail summary for PR notes.
 
-6. Commit and push.
+7. Commit and push.
 
 - Stage only intended files.
 - Write a specific commit message.
 - Push: `git push -u origin <branch>`.
 
-7. Open PR.
+8. Open PR.
 
 - Create PR against `main` unless repo specifies another base.
 - Include summary, testing, and `Closes #<number>`.
@@ -67,12 +75,12 @@ Prioritize correctness, minimal diffs, and explicit verification.
   - Write PR body to `/tmp/pr-<number>.md`.
   - Create PR with `gh pr create --base main --head <branch> --title "<title>" --body-file /tmp/pr-<number>.md`.
 
-8. Apply review label.
+9. Apply review label.
 
 - Add `needs-review` label to PR.
 - If workflow expects issue labeling too, add `needs-review` to the issue.
 
-9. Continue queue processing.
+10. Continue queue processing.
 
 - After finishing the PR handoff, call `build-feature` again to pick up the next `assigned:codex` issue.
 - Remove the issue worktree after handoff if it is clean:
