@@ -17,6 +17,15 @@ export default function HistoricalChart({ data, country = '', forecast = null, f
     svg.selectAll('*').remove()
     svg.attr('viewBox', `0 0 ${width} ${height}`)
 
+    // Clip path for forecast CI band — prevents wide CI from drawing outside chart area
+    svg.append('defs').append('clipPath')
+      .attr('id', 'chart-area-clip')
+      .append('rect')
+      .attr('x', margin.left)
+      .attr('y', margin.top)
+      .attr('width', width - margin.left - margin.right)
+      .attr('height', height - margin.top - margin.bottom)
+
     // Group by season
     const bySeason = d3.group(data, d => d.season)
     const seasons = [...bySeason.keys()].sort().slice(-10)
@@ -33,9 +42,12 @@ export default function HistoricalChart({ data, country = '', forecast = null, f
         }))
       : []
 
+    // Y-axis is driven by observed data + forecast mean, not CI upper bounds.
+    // CI band is clipped to the chart area so it remains visible without
+    // compressing the historical season lines when CI is wide.
     const yMax = Math.max(
       d3.max(data, d => d.cases) || 1,
-      d3.max(fcastPoints, d => d.upper) || 0,
+      d3.max(fcastPoints, d => d.forecast) || 0,
     )
 
     const x = d3.scaleLinear().domain(xExtent).range([margin.left, width - margin.right])
@@ -100,6 +112,7 @@ export default function HistoricalChart({ data, country = '', forecast = null, f
           .datum(validFcast)
           .attr('d', area)
           .attr('fill', 'rgba(245, 158, 11, 0.12)')
+          .attr('clip-path', 'url(#chart-area-clip)')
 
         // Forecast dashed line
         const fline = d3.line()
