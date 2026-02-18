@@ -9,7 +9,7 @@ A skill is a set of local instructions to follow that is stored in a `SKILL.md` 
 - issue: Create a GitHub issue for a feature request or bug fix. (file: /workspace/skills/issue/SKILL.md)
 - review-claude-prs: Find issues labeled assigned:claude and needs-review, locate the related PR, review the code changes, and either comment with approval and merge, or request changes. Use when asked to review Claude-generated PRs. (file: /workspace/skills/review-claude-prs/SKILL.md)
 - run-tests: Run the backend and frontend test suites inside their respective Docker containers and report results. Use when asked to run tests, verify a fix, or check that nothing is broken. (file: /workspace/skills/run-tests/SKILL.md)
-- unwind: Append a reflective end-of-session entry to unwind.md, read Claude's entries and react to any you agree with, and file GitHub issues for actionable feedback. (file: /workspace/skills/unwind/SKILL.md)
+- unwind: Append a reflective end-of-session entry to daily files under unwind/, read Claude's entries and react to any you agree with, and file GitHub issues for actionable feedback. (file: /workspace/skills/unwind/SKILL.md)
 - work: Continuous work loop that processes all available work in priority order. Fixes PRs with requested changes, reviews Codex PRs, builds features for assigned issues, then repeats until no work remains. (file: /workspace/skills/work/SKILL.md)
 
 ### How to use skills
