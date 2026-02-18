@@ -4,6 +4,15 @@ import reactPlugin from 'eslint-plugin-react'
 import globals from 'globals'
 
 export default [
+  // Globally ignore generated/non-source paths
+  {
+    ignores: [
+      'dist/**',
+      'coverage/**',
+      'node_modules/**',
+      'package-lock.json',
+    ],
+  },
   js.configs.recommended,
   importX.flatConfigs.recommended,
   {
@@ -67,6 +76,9 @@ export default [
     },
     rules: {
       'no-unused-vars': 'warn',
+      // @testing-library exports are declared in .d.ts files that the node
+      // resolver cannot read in a JS-only project, causing false positives.
+      'import-x/named': 'off',
     },
   },
 ]
