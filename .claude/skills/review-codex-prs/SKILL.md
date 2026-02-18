@@ -32,20 +32,33 @@ If you need to read a specific file from the PR branch, use:
 2. Select an issue.
 
 - Pick the oldest issue (lowest number) to review first.
-- Read issue details with `gh issue view <number>`.
+- Read issue details with `gh issue view <number> --json number,title,body,labels`.
 
-3. Find the related PR.
+3. Find the related PR via the issue timeline.
 
-- Search for a PR that closes the issue: `gh pr list --search "closes #<number> OR fixes #<number> OR resolves #<number>" --state open --json number,title,headRefName,url`.
-- If no PR is found via search, look for PRs with a branch name matching the issue number: `gh pr list --state open --json number,title,headRefName,url` and filter for branches containing `issue-<number>`.
-- If still no PR is found, check if the issue body or comments reference a PR: `gh issue view <number> --comments`.
-- If no related PR exists, report that the issue has no PR to review and stop.
+- Look up PRs that reference the issue through the GitHub timeline API:
+  ```
+  gh api repos/{owner}/{repo}/issues/<number>/timeline --paginate \
+    --jq '[.[] | select(.event == "cross-referenced")
+               | select(.source.issue.pull_request != null)
+               | select(.source.issue.state == "open")
+               | .source.issue.number] | last'
+  ```
+- Take the returned PR number and fetch its details:
+  ```
+  gh pr view <pr-number> --json number,title,headRefName,url
+  ```
+- If no open PR is found, report that the issue has no PR to review and stop.
 
 4. Review the PR.
 
-- Read the PR details: `gh pr view <number>`.
-- Read the full diff: `gh pr diff <number>`.
-- Check CI status: `gh pr checks <number>`.
+- Read the PR details: `gh pr view <pr-number> --json number,title,body,headRefName`.
+- Read the full diff: `gh pr diff <pr-number>`.
+- Check CI status — **all required checks must be green**:
+  ```
+  gh pr checks <pr-number> --required
+  ```
+  If any required check has not passed, do not merge — request changes and note the failing checks.
 - Review the code changes for:
   - **Correctness**: Does the change actually fix the issue?
   - **Tests**: Are there appropriate tests for the change?
@@ -56,40 +69,59 @@ If you need to read a specific file from the PR branch, use:
 
 5. Make a review decision.
 
-- **If approved** (correct, well-tested, no issues):
-  - Leave a comment on the PR with the review summary: `gh pr comment <number> --body "<review summary>"`.
-  - Update the issue: remove `needs-review`, add `reviewed:approved`: `gh issue edit <number> --remove-label "needs-review" --add-label "reviewed:approved"`.
-  - Merge the PR: `gh pr merge <number> --merge --delete-branch`.
-- **If changes needed** (problems found):
-  - Leave a comment on the PR with detailed feedback: `gh pr comment <number> --body "<detailed feedback with specific issues>"`.
-  - Update the issue: remove `needs-review`, add `needs:changes`: `gh issue edit <number> --remove-label "needs-review" --add-label "needs:changes"`.
-- Include in the comment:
-  - What was reviewed
-  - Key findings (positive and negative)
-  - Specific line references for any issues found
+- **If approved** (correct, well-tested, all required checks green):
+  - Write the review comment to a temp file, then post it:
 
-## Review Comment Template
+    ```
+    cat > /tmp/gh-body.md << 'EOF'
+    ## Review of #<pr-number> (fixes #<issue-number>)
 
-Use this structure in PR comments:
+    ### Summary
+    - <what the PR does>
 
-```md
-## Review of #<PR-number> (fixes #<issue-number>)
+    ### Findings
+    - <finding 1>
+    - <finding 2>
 
-### Summary
-- <what the PR does>
+    ### Decision
+    - Approved — merging.
+    EOF
+    gh pr comment <pr-number> --body-file /tmp/gh-body.md
+    ```
 
-### Findings
-- <finding 1>
-- <finding 2>
+  - Update the issue: remove `needs-review`, add `reviewed:approved`:
+    ```
+    gh issue edit <number> --remove-label "needs-review" --add-label "reviewed:approved"
+    ```
+  - Merge the PR: `gh pr merge <pr-number> --merge --delete-branch`.
 
-### Decision
-- <Approved — merging / Changes requested with rationale>
-```
+- **If changes needed** (problems found or required checks failing):
+  - Write the feedback to a temp file, then post it:
+
+    ```
+    cat > /tmp/gh-body.md << 'EOF'
+    ## Review of #<pr-number> (fixes #<issue-number>)
+
+    ### Summary
+    - <what the PR does>
+
+    ### Findings
+    - <specific issue with file:line reference>
+
+    ### Decision
+    - Changes requested: <rationale>
+    EOF
+    gh pr comment <pr-number> --body-file /tmp/gh-body.md
+    ```
+
+  - Update the issue: remove `needs-review`, add `needs:changes`:
+    ```
+    gh issue edit <number> --remove-label "needs-review" --add-label "needs:changes"
+    ```
 
 ## Guardrails
 
 - Do NOT use `gh pr review --approve` (fails on own PRs). Use `gh pr comment` instead.
+- Do NOT merge if any required CI check has not passed. Note the failing checks in the review comment.
 - Provide specific, actionable feedback when requesting changes.
-- Check that CI passes before approving and merging.
-- If CI is failing, include that in the review as a reason for requesting changes. Do not merge.
 - Review the full diff, not just a summary.

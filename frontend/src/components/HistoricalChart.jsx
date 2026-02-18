@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from 'react'
 import * as d3 from 'd3'
 import { seasonColors } from '../utils/colors'
 
-export default function HistoricalChart({ data }) {
+export default function HistoricalChart({ data, country = '' }) {
   const svgRef = useRef()
 
   useEffect(() => {
@@ -71,7 +71,9 @@ export default function HistoricalChart({ data }) {
 
   return (
     <div style={{ background: '#0d1117', borderRadius: 8, padding: 12, border: '1px solid #2a2a4a' }}>
-      <h3 style={{ fontSize: '0.9rem', color: '#ccc', marginBottom: 8 }}>Historical Season Comparison</h3>
+      <h3 style={{ fontSize: '0.9rem', color: '#ccc', marginBottom: 8 }}>
+        Historical Season Comparison{country ? ` (${country})` : ' (Global)'}
+      </h3>
       <svg ref={svgRef} style={{ width: '100%', height: 'auto' }} />
     </div>
   )

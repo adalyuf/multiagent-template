@@ -32,7 +32,15 @@ const styles = {
   empty: { fontSize: '0.8rem', color: '#666' },
 }
 
-export default function AlertBar({ anomalies }) {
+export default function AlertBar({ anomalies, loadError }) {
+  if (loadError) {
+    return (
+      <div style={styles.bar}>
+        <span style={{ ...styles.empty, color: '#f87171' }}>Unable to load anomaly alerts — please refresh.</span>
+      </div>
+    )
+  }
+
   if (!anomalies || anomalies.length === 0) {
     return (
       <div style={styles.bar}>

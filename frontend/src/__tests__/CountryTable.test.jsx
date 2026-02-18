@@ -60,4 +60,12 @@ describe('CountryTable', () => {
     fireEvent.click(casesHeader)
     expect(getVisibleCountryCodes(container)).toEqual(['US', 'CA', 'GB'])
   })
+
+  it('calls onSelectCountry when a row is clicked', () => {
+    const onSelectCountry = vi.fn()
+    render(<CountryTable data={rows} onSelectCountry={onSelectCountry} />)
+
+    fireEvent.click(screen.getByText('GB'))
+    expect(onSelectCountry).toHaveBeenCalledWith('GB')
+  })
 })

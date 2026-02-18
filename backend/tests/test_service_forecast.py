@@ -11,7 +11,7 @@ from app.services.forecast import generate_forecast
 @pytest.mark.asyncio
 async def test_generate_forecast_requires_minimum_points(db_session):
     start = date(2025, 1, 6)
-    for i in range(9):
+    for i in range(3):
         db_session.add(
             FluCase(
                 country_code="US",

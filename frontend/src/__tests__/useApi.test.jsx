@@ -24,4 +24,20 @@ describe('useApi', () => {
     expect(result.current.data).toBeNull()
     expect(result.current.error).toBe(error)
   })
+
+  it('retries transient API failures', async () => {
+    const fetcher = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('API error: 504'))
+      .mockResolvedValueOnce({ ok: true })
+
+    const { result } = renderHook(() => useApi(fetcher, []))
+
+    await waitFor(() => expect(fetcher).toHaveBeenCalledTimes(2))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    expect(fetcher).toHaveBeenCalledTimes(2)
+    expect(result.current.data).toEqual({ ok: true })
+    expect(result.current.error).toBeNull()
+  })
 })

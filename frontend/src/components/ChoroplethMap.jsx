@@ -17,7 +17,7 @@ async function getWorldMap(url) {
   return worldMapPromise
 }
 
-export default function ChoroplethMap({ data }) {
+export default function ChoroplethMap({ data, selectedCountry = '', onSelectCountry = () => {} }) {
   const svgRef = useRef()
 
   useEffect(() => {
@@ -55,8 +55,20 @@ export default function ChoroplethMap({ data }) {
             const val = iso ? dataMap[iso] : null
             return val != null ? mapColorScale(val) : '#1a1a2e'
           })
-          .attr('stroke', '#333')
-          .attr('stroke-width', 0.5)
+          .attr('cursor', d => (numericToIso(+d.id) ? 'pointer' : 'default'))
+          .attr('stroke', d => {
+            const iso = numericToIso(+d.id)
+            return iso && iso === selectedCountry ? '#f59e0b' : '#333'
+          })
+          .attr('stroke-width', d => {
+            const iso = numericToIso(+d.id)
+            return iso && iso === selectedCountry ? 1.8 : 0.5
+          })
+          .on('click', (_, d) => {
+            const iso = numericToIso(+d.id)
+            if (!iso) return
+            onSelectCountry(iso === selectedCountry ? '' : iso)
+          })
           .append('title')
           .text(d => {
             const iso = numericToIso(+d.id)
@@ -64,7 +76,7 @@ export default function ChoroplethMap({ data }) {
             return `${iso || d.id}: ${val != null ? val.toFixed(1) + ' per 100k' : 'No data'}`
           })
       })
-  }, [data])
+  }, [data, selectedCountry, onSelectCountry])
 
   return (
     <div style={{ background: '#0d1117', borderRadius: 8, padding: 12, border: '1px solid #2a2a4a' }}>

@@ -1,6 +1,6 @@
 from datetime import date
 from fastapi import APIRouter, Query
-from sqlalchemy import and_, case, desc, func, select, text
+from sqlalchemy import String, and_, case, cast, desc, func, select, text
 from app.database import async_session
 from app.models import FluCase
 from app.population import get_population
@@ -95,7 +95,9 @@ async def cases_map():
 
 
 @router.get("/cases/historical", response_model=list[HistoricalPoint])
-async def cases_historical():
+async def cases_historical(
+    country: str = Query("", max_length=2, description="Country code filter"),
+):
     """Season comparison data — current + past 9 seasons, normalized Oct-Sep."""
     async with async_session() as session:
         q = (
@@ -106,6 +108,8 @@ async def cases_historical():
             .group_by(FluCase.time)
             .order_by(FluCase.time)
         )
+        if country:
+            q = q.where(FluCase.country_code == country.upper())
         result = await session.execute(q)
         rows = list(result)
 
@@ -140,14 +144,15 @@ async def cases_subtypes():
             return []
 
         cutoff = weeks_ago(max_date, 52)
+        flu_type_label = cast(FluCase.flu_type, String).label("flu_type")
         q = (
             select(
                 FluCase.time,
-                FluCase.flu_type,
+                flu_type_label,
                 func.sum(FluCase.new_cases).label("total"),
             )
             .where(FluCase.time >= cutoff)
-            .group_by(FluCase.time, FluCase.flu_type)
+            .group_by(FluCase.time, flu_type_label)
             .order_by(FluCase.time)
         )
         result = await session.execute(q)
@@ -201,14 +206,15 @@ async def cases_countries(
         prior_data = {r.country_code: r.total for r in prior_result}
 
         # Dominant type per country (current period)
+        flu_type_label = cast(FluCase.flu_type, String).label("flu_type")
         dom_q = (
             select(
                 FluCase.country_code,
-                FluCase.flu_type,
+                flu_type_label,
                 func.sum(FluCase.new_cases).label("total"),
             )
             .where(FluCase.time >= cutoff)
-            .group_by(FluCase.country_code, FluCase.flu_type)
+            .group_by(FluCase.country_code, flu_type_label)
             .order_by(desc("total"))
         )
         dom_result = await session.execute(dom_q)

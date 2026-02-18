@@ -48,7 +48,7 @@ function SeverityMeter({ value }) {
   )
 }
 
-export default function CountryTable({ data }) {
+export default function CountryTable({ data, selectedCountry = '', onSelectCountry = () => {} }) {
   const [search, setSearch] = useState('')
   const [sortField, setSortField] = useState('total_cases')
   const [sortDir, setSortDir] = useState(-1)
@@ -96,7 +96,15 @@ export default function CountryTable({ data }) {
           </thead>
           <tbody>
             {sorted.map((r, i) => (
-              <tr key={r.country_code} style={{ color: '#ccc' }}>
+              <tr
+                key={r.country_code}
+                style={{
+                  color: '#ccc',
+                  cursor: 'pointer',
+                  background: r.country_code === selectedCountry ? 'rgba(245, 158, 11, 0.12)' : 'transparent',
+                }}
+                onClick={() => onSelectCountry(r.country_code === selectedCountry ? '' : r.country_code)}
+              >
                 <td style={styles.td}>{i + 1}</td>
                 <td style={styles.td}>{r.country_code}</td>
                 <td style={styles.td}>{r.total_cases?.toLocaleString()}</td>

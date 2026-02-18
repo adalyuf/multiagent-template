@@ -49,4 +49,4 @@ Run these steps in order. After each step, proceed to the next regardless of whe
 - Always complete one skill invocation fully before starting the next.
 - If a skill reports an error or blocker, log it and continue to the next step rather than retrying indefinitely.
 - Report a summary of all work completed at the end of the loop.
-- When invoking sub-skills that modify code, ensure they use dedicated task worktrees instead of switching branches in the shared root worktree.
+- When invoking sub-skills that modify code, ensure they use dedicated task worktrees under `/workspace/worktrees` instead of switching branches in the shared root worktree.

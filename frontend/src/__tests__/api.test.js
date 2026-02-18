@@ -22,6 +22,11 @@ describe('api client', () => {
     expect(fetch).toHaveBeenCalledWith('/api/cases/countries?search=US&sort=cases')
   })
 
+  it('calls historical endpoint with params', async () => {
+    await api.historical('country=US')
+    expect(fetch).toHaveBeenCalledWith('/api/cases/historical?country=US')
+  })
+
   it('calls forecast endpoint with params', async () => {
     await api.forecast('country=US&weeks=6')
     expect(fetch).toHaveBeenCalledWith('/api/forecast?country=US&weeks=6')

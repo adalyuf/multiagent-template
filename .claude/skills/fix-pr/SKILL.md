@@ -32,28 +32,39 @@ The main `/workspace` checkout always stays on `main`.
 - Pick the oldest issue (lowest number) first.
 - Read issue details with `gh issue view <number> --json number,title,body,labels`.
 
-3. Find the related PR.
+3. Find the related PR via the issue timeline.
 
-- Search for a PR that closes the issue: `gh pr list --search "closes #<number> OR fixes #<number> OR resolves #<number>" --state open --json number,title,headRefName,url`.
-- If no PR is found via search, look for PRs with a branch name matching the issue number: `gh pr list --state open --json number,title,headRefName,url` and filter for branches containing `issue-<number>`.
-- If no related PR exists, report that the issue has no PR to fix and stop.
+- Look up PRs that reference the issue through the GitHub timeline API:
+  ```
+  gh api repos/{owner}/{repo}/issues/<number>/timeline --paginate \
+    --jq '[.[] | select(.event == "cross-referenced")
+               | select(.source.issue.pull_request != null)
+               | select(.source.issue.state == "open")
+               | .source.issue.number] | last'
+  ```
+- Take the returned PR number and fetch its details:
+  ```
+  gh pr view <pr-number> --json number,title,headRefName,url
+  ```
+- If no open PR is found, report that the issue has no PR to fix and stop.
 
 4. Read review feedback.
 
 - Get PR reviews: `gh api repos/{owner}/{repo}/pulls/<pr-number>/reviews --jq '.[] | select(.state == "CHANGES_REQUESTED") | .body'`.
 - Get PR review comments (inline): `gh api repos/{owner}/{repo}/pulls/<pr-number>/comments --jq '.[] | {path, line, body}'`.
-- Get general PR comments: `gh pr view <number> --comments`.
+- Get general PR comments: `gh api repos/{owner}/{repo}/issues/<pr-number>/comments --jq '.[] | {user: .user.login, body}'`.
 - Compile a clear list of all requested changes.
 
 5. Create a worktree for the PR branch.
 
-- Fetch the branch, then create a worktree for it:
+- Worktree path: `/workspace/.worktrees/<branch>` (e.g. `/workspace/.worktrees/fix/issue-20-my-slug`).
+- Fetch the branch, then create a worktree:
   ```
   git -C /workspace fetch origin <branch>
   git -C /workspace worktree add /workspace/.worktrees/<branch> <branch>
   ```
 - All file reads, edits, and git commands operate inside `/workspace/.worktrees/<branch>`.
-- Read the full PR diff to understand what was already changed: `gh pr diff <number>`.
+- Read the full PR diff to understand what was already changed: `gh pr diff <pr-number>`.
 - Read each file mentioned in the review feedback to understand current state.
 
 6. Implement the requested changes.
@@ -76,7 +87,22 @@ The main `/workspace` checkout always stays on `main`.
 
 9. Comment on the PR.
 
-- Leave a comment summarizing what was changed: `gh pr comment <number> --body "<summary of changes made>"`.
+- Write the comment to a temp file, then post it:
+  ```
+  cat > /tmp/gh-body.md << 'EOF'
+  ## Changes made (addressing review feedback)
+
+  - <change 1>
+  - <change 2>
+
+  ## Testing
+
+  - <test command and result>
+
+  Ready for re-review.
+  EOF
+  gh pr comment <pr-number> --body-file /tmp/gh-body.md
+  ```
 
 10. Update issue labels.
 
@@ -85,34 +111,19 @@ The main `/workspace` checkout always stays on `main`.
 
 11. Clean up the worktree.
 
-- Remove the local worktree now that changes are pushed:
+- Remove the worktree directory only — do NOT delete the branch:
   ```
   git -C /workspace worktree remove /workspace/.worktrees/<branch>
   ```
-
-## PR Comment Template
-
-Use this structure:
-
-```md
-## Changes made (addressing review feedback)
-
-- <change 1>
-- <change 2>
-
-## Testing
-
-- <test command and result>
-
-Ready for re-review.
-```
+- The branch remains available in the local repo and on the remote until the PR is merged.
 
 ## Guardrails
 
 - Never `git switch` or `git checkout` in `/workspace`. Use worktrees only.
+- Worktree root is always `/workspace/.worktrees/` — never use `/workspace/worktrees/` or any other path.
 - Never force-push — only regular push to the PR branch.
 - Only change files relevant to the review feedback.
 - Do not modify unrelated code.
 - If review feedback conflicts with the original issue requirements, note the conflict in a PR comment and follow the review feedback.
 - Always verify tests pass before pushing.
-- Always remove the worktree after pushing.
+- Always remove the worktree after pushing. Never delete the branch itself.

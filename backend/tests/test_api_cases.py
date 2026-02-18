@@ -134,6 +134,37 @@ async def test_cases_historical_normalizes_oct_sep_season(client, db_session):
 
 
 @pytest.mark.asyncio
+async def test_cases_historical_country_filter(client, db_session):
+    rows = [
+        FluCase(
+            country_code="US",
+            flu_type="H1N1",
+            source="who_flunet",
+            time=date(2025, 1, 1),
+            new_cases=10,
+            iso_year=2025,
+            iso_week=1,
+        ),
+        FluCase(
+            country_code="GB",
+            flu_type="H3N2",
+            source="who_flunet",
+            time=date(2025, 1, 1),
+            new_cases=20,
+            iso_year=2025,
+            iso_week=1,
+        ),
+    ]
+    db_session.add_all(rows)
+    await db_session.commit()
+
+    resp = await client.get("/api/cases/historical?country=US")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert len(data) == 1
+    assert data[0]["cases"] == 10
+
+@pytest.mark.asyncio
 async def test_cases_subtypes_empty(client):
     resp = await client.get("/api/cases/subtypes")
     assert resp.status_code == 200
