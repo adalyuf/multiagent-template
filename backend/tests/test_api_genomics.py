@@ -99,3 +99,30 @@ async def test_genomics_trends_with_data(client, seed_genomic_sequences):
         assert "date" in item
         assert "clade" in item
         assert "count" in item
+
+
+@pytest.mark.asyncio
+async def test_genomics_trends_anchors_cutoff_to_latest_db_date(client, db_session):
+    rows = [
+        GenomicSequence(
+            country_code="US",
+            clade="2a",
+            lineage="",
+            collection_date=date(2020, 1, 1),
+            count=5,
+        ),
+        GenomicSequence(
+            country_code="US",
+            clade="2a",
+            lineage="",
+            collection_date=date(2020, 2, 1),
+            count=6,
+        ),
+    ]
+    db_session.add_all(rows)
+    await db_session.commit()
+
+    resp = await client.get("/api/genomics/trends?years=1")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert len(data) > 0

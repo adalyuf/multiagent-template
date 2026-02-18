@@ -1,13 +1,9 @@
 import React, { useState } from 'react'
 import { severityColor } from '../utils/colors'
+import { cardContainerStyle, tableStyles } from '../utils/tableStyles'
 
 const styles = {
-  container: {
-    background: '#0d1117',
-    borderRadius: 8,
-    padding: 16,
-    border: '1px solid #2a2a4a',
-  },
+  container: cardContainerStyle,
   controls: {
     display: 'flex',
     gap: 8,
@@ -22,23 +18,12 @@ const styles = {
     padding: '6px 12px',
     fontSize: '0.8rem',
   },
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse',
-    fontSize: '0.8rem',
-  },
   th: {
-    textAlign: 'left',
-    padding: '8px 12px',
-    borderBottom: '1px solid #333',
-    color: '#888',
-    fontWeight: 600,
+    ...tableStyles.th,
     cursor: 'pointer',
   },
-  td: {
-    padding: '8px 12px',
-    borderBottom: '1px solid #1a1a2e',
-  },
+  table: tableStyles.table,
+  td: tableStyles.td,
 }
 
 function Sparkline({ data, width = 80, height = 20 }) {
@@ -63,7 +48,7 @@ function SeverityMeter({ value }) {
   )
 }
 
-export default function CountryTable({ data }) {
+export default function CountryTable({ data, selectedCountry = '', onSelectCountry = () => {} }) {
   const [search, setSearch] = useState('')
   const [sortField, setSortField] = useState('total_cases')
   const [sortDir, setSortDir] = useState(-1)
@@ -115,7 +100,15 @@ export default function CountryTable({ data }) {
           </thead>
           <tbody>
             {sorted.map((r, i) => (
-              <tr key={r.country_code} style={{ color: '#ccc' }}>
+              <tr
+                key={r.country_code}
+                style={{
+                  color: '#ccc',
+                  cursor: 'pointer',
+                  background: r.country_code === selectedCountry ? 'rgba(245, 158, 11, 0.12)' : 'transparent',
+                }}
+                onClick={() => onSelectCountry(r.country_code === selectedCountry ? '' : r.country_code)}
+              >
                 <td style={styles.td}>{i + 1}</td>
                 <td style={styles.td}>{r.country_code}</td>
                 <td style={styles.td}>{r.total_cases?.toLocaleString()}</td>

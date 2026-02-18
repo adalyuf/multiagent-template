@@ -19,7 +19,7 @@ Prioritize correctness, minimal diffs, and explicit verification.
 ## Worktree Conventions
 
 - Use a dedicated worktree per issue so multiple agents can run concurrently.
-- Recommended path: `../worktrees/<branch>`.
+- Use absolute path: `/workspace/worktrees/<branch>`.
 - Do all issue edits, commits, and pushes from that issue worktree, not the shared root worktree.
 
 ## Workflow
@@ -40,8 +40,8 @@ Prioritize correctness, minimal diffs, and explicit verification.
 - Use `fix/issue-<number>-<short-slug>`.
 - Create from `origin/main` with:
   - `git fetch origin`
-  - `git worktree add -b <branch> ../worktrees/<branch> origin/main`
-- Run all following commands from `../worktrees/<branch>`.
+  - `git worktree add -b <branch> /workspace/worktrees/<branch> origin/main`
+- Run all following commands from `/workspace/worktrees/<branch>`.
 
 4. Implement fix.
 
@@ -63,6 +63,9 @@ Prioritize correctness, minimal diffs, and explicit verification.
 
 - Create PR against `main` unless repo specifies another base.
 - Include summary, testing, and `Closes #<number>`.
+- Standardize on `--body-file`:
+  - Write PR body to `/tmp/pr-<number>.md`.
+  - Create PR with `gh pr create --base main --head <branch> --title "<title>" --body-file /tmp/pr-<number>.md`.
 
 8. Apply review label.
 
@@ -72,8 +75,8 @@ Prioritize correctness, minimal diffs, and explicit verification.
 9. Continue queue processing.
 
 - After finishing the PR handoff, call `build-feature` again to pick up the next `assigned:codex` issue.
-- Optionally remove the issue worktree after handoff if clean:
-  - `git worktree remove ../worktrees/<branch>`.
+- Remove the issue worktree after handoff if it is clean:
+  - `git worktree remove /workspace/worktrees/<branch>`.
 
 ## PR Body Template
 
@@ -98,4 +101,5 @@ Closes #<issue-number>
 - Never include unrelated file changes in commits.
 - Never remove or revert user changes you did not make.
 - Never use `git switch` in the shared root worktree for task development.
+- Always clean up the issue worktree when the task is complete.
 - If tooling fails (for example, old `gh` behavior), use `gh api` fallback and verify resulting PR/labels explicitly.

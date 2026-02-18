@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from datetime import date, datetime
 from typing import Optional
+from app.models import AnomalyType, Severity
 
 
 class CaseSummary(BaseModel):
@@ -48,8 +49,8 @@ class AnomalyOut(BaseModel):
     id: int
     country_code: str
     country_name: str
-    anomaly_type: str
-    severity: str
+    anomaly_type: AnomalyType
+    severity: Severity
     message: str
     detected_at: datetime
 

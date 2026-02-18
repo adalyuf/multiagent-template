@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import timedelta
 from fastapi import APIRouter, Query
 from sqlalchemy import select, func, desc, cast, String
 from app.database import async_session
@@ -10,12 +10,16 @@ router = APIRouter()
 
 @router.get("/trends", response_model=list[GenomicTrendPoint])
 async def genomic_trends(
-    years: int = Query(1, description="Years of data"),
-    country: str = Query("", description="Country filter"),
-    top_n: int = Query(6, description="Top N clades"),
+    years: int = Query(1, ge=1, le=10, description="Years of data"),
+    country: str = Query("", max_length=2, description="Country filter"),
+    top_n: int = Query(6, ge=1, le=100, description="Top N clades"),
 ):
     async with async_session() as session:
-        cutoff = date.today() - timedelta(days=years * 365)
+        max_date_r = await session.execute(select(func.max(GenomicSequence.collection_date)))
+        max_date = max_date_r.scalar()
+        if not max_date:
+            return []
+        cutoff = max_date - timedelta(days=years * 365)
 
         # Get top clades
         top_q = (

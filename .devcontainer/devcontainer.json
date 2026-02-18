@@ -43,7 +43,7 @@
     "CLAUDE_CONFIG_DIR": "/home/node/.claude",
     "POWERLEVEL9K_DISABLE_GITSTATUS": "true"
   },
-  "postCreateCommand": "sudo chown -R node:node /home/node/.config /home/node/.claude /home/node/.codex /home/node/.railway",
+  "postCreateCommand": "sudo chown -R node:node /home/node/.config /home/node/.claude /home/node/.codex /home/node/.railway && mkdir -p /home/node/.codex/skills && for s in build-feature fix-pr review-claude-prs work; do rm -rf /home/node/.codex/skills/$s; ln -s /workspace/skills/$s /home/node/.codex/skills/$s; done",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=delegated",
   "workspaceFolder": "/workspace"
 }

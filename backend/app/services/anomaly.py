@@ -2,7 +2,7 @@ import logging
 from datetime import datetime, timedelta
 from sqlalchemy import select, func, delete, text
 from app.database import async_session
-from app.models import FluCase, Anomaly
+from app.models import Anomaly, AnomalyType, FluCase, Severity
 
 logger = logging.getLogger(__name__)
 
@@ -69,11 +69,11 @@ async def detect_anomalies():
                 zscore = (weekly_avg - avg) / std
 
                 if zscore >= ZSCORE_THRESHOLD:
-                    severity = "high" if zscore >= 3.0 else "medium"
+                    severity = Severity.HIGH if zscore >= 3.0 else Severity.MEDIUM
                     anomalies.append(Anomaly(
                         country_code=cc,
                         country_name=cc,
-                        anomaly_type="spike",
+                        anomaly_type=AnomalyType.SPIKE,
                         severity=severity,
                         message=f"{cc}: cases {zscore:.1f}x std above mean ({int(weekly_avg)} vs avg {int(avg)})",
                         detected_at=datetime.utcnow(),

@@ -5,6 +5,7 @@ import { useApi } from '../hooks/useApi'
 import KpiCards from '../components/KpiCards'
 import CladeTrends from '../components/CladeTrends'
 import GenomicsTable from '../components/GenomicsTable'
+import ErrorBoundary from '../components/ErrorBoundary'
 
 export default function Genomics() {
   const [years, setYears] = useState(1)
@@ -12,9 +13,9 @@ export default function Genomics() {
   const [topN, setTopN] = useState(6)
 
   const params = `years=${years}&top_n=${topN}${country ? `&country=${country}` : ''}`
-  const { data: trends } = useApi(() => api.genomicTrends(params), [years, country, topN])
-  const { data: summary } = useApi(() => api.genomicSummary(), [])
-  const { data: countries } = useApi(() => api.genomicCountries(), [])
+  const { data: trends, error: trendsError } = useApi(() => api.genomicTrends(params), [years, country, topN])
+  const { data: summary, error: summaryError } = useApi(() => api.genomicSummary(), [])
+  const { data: countries, error: countriesError } = useApi(() => api.genomicCountries(), [])
 
   const btnStyle = (active) => ({
     padding: '6px 14px',
@@ -114,17 +115,23 @@ export default function Genomics() {
 
       {/* KPIs */}
       <div style={{ padding: '0 24px 16px' }}>
-        <KpiCards data={summary} />
+        {summaryError
+          ? <p style={{ color: '#f87171', fontSize: '0.85rem' }}>Failed to load genomics summary — please refresh.</p>
+          : <ErrorBoundary><KpiCards data={summary} /></ErrorBoundary>}
       </div>
 
       {/* Clade trends chart */}
       <div style={{ padding: '0 24px 16px' }}>
-        <CladeTrends data={trends} />
+        {trendsError
+          ? <p style={{ color: '#f87171', fontSize: '0.85rem' }}>Failed to load trend data — please refresh.</p>
+          : <ErrorBoundary><CladeTrends data={trends} /></ErrorBoundary>}
       </div>
 
       {/* Countries table */}
       <div style={{ padding: '0 24px 24px' }}>
-        <GenomicsTable data={countries} />
+        {countriesError
+          ? <p style={{ color: '#f87171', fontSize: '0.85rem' }}>Failed to load countries data — please refresh.</p>
+          : <ErrorBoundary><GenomicsTable data={countries} /></ErrorBoundary>}
       </div>
     </div>
   )

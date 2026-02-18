@@ -1,4 +1,12 @@
-const BASE = '/api'
+function resolveBase() {
+  const configured = (import.meta.env.VITE_API_URL || '').trim()
+  if (!configured) return '/api'
+
+  const normalized = configured.replace(/\/+$/, '')
+  return normalized.endsWith('/api') ? normalized : `${normalized}/api`
+}
+
+const BASE = resolveBase()
 
 async function fetchJson(path) {
   const res = await fetch(`${BASE}${path}`)
@@ -9,7 +17,7 @@ async function fetchJson(path) {
 export const api = {
   summary: () => fetchJson('/cases/summary'),
   mapData: () => fetchJson('/cases/map'),
-  historical: () => fetchJson('/cases/historical'),
+  historical: (params = '') => fetchJson(`/cases/historical${params ? '?' + params : ''}`),
   subtypes: () => fetchJson('/cases/subtypes'),
   countries: (params = '') => fetchJson(`/cases/countries${params ? '?' + params : ''}`),
   anomalies: () => fetchJson('/anomalies'),

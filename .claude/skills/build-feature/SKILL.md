@@ -29,20 +29,19 @@ The main `/workspace` checkout always stays on `main`.
 
 2. Select the issue.
 
-- Prefer issue labels or severity guidance if present.
-- Read issue details with `gh issue view <number>`.
+- Prefer the lowest-numbered actionable issue (no `needs-review` or `needs:changes` label).
+- Read issue details with `gh issue view <number> --json number,title,body,labels`.
 - Add the `assigned:claude` label if missing: `gh issue edit <number> --add-label assigned:claude`.
 
 3. Create a worktree for the branch.
 
 - Branch name: `fix/issue-<number>-<short-slug>`.
+- Worktree path: `/workspace/.worktrees/<branch>` (e.g. `/workspace/.worktrees/fix/issue-22-my-slug`).
 - Create the branch and worktree in one step:
   ```
-  git -C /workspace worktree add /workspace/.worktrees/fix/issue-<number>-<short-slug> \
-      -b fix/issue-<number>-<short-slug>
+  git -C /workspace worktree add /workspace/.worktrees/<branch> -b <branch>
   ```
-- All subsequent file reads, edits, and git commands operate inside
-  `/workspace/.worktrees/fix/issue-<number>-<short-slug>`.
+- All subsequent file reads, edits, and git commands operate inside `/workspace/.worktrees/<branch>`.
 
 4. Implement fix.
 
@@ -58,12 +57,26 @@ The main `/workspace` checkout always stays on `main`.
 
 - Stage only intended files (run git commands from the worktree path).
 - Write a specific commit message.
-- Push: `git -C /workspace/.worktrees/fix/issue-<number>-<short-slug> push -u origin fix/issue-<number>-<short-slug>`.
+- Push: `git -C /workspace/.worktrees/<branch> push -u origin <branch>`.
 
 7. Open PR.
 
-- Create PR against `main` unless repo specifies another base.
-- Include summary, testing, and `Closes #<number>`.
+- Write the PR body to a temp file, then create the PR:
+  ```
+  cat > /tmp/gh-body.md << 'EOF'
+  ## Summary
+
+  - <change 1>
+  - <change 2>
+
+  ## Testing
+
+  - `<command and result>`
+
+  Closes #<issue-number>
+  EOF
+  gh pr create --title "<title>" --body-file /tmp/gh-body.md --base main --head <branch>
+  ```
 
 8. Apply review label.
 
@@ -71,33 +84,17 @@ The main `/workspace` checkout always stays on `main`.
 
 9. Clean up the worktree.
 
-- Remove the local worktree now that the branch is pushed:
+- Remove the worktree directory only — do NOT delete the branch:
   ```
-  git -C /workspace worktree remove /workspace/.worktrees/fix/issue-<number>-<short-slug>
+  git -C /workspace worktree remove /workspace/.worktrees/<branch>
   ```
-
-## PR Body Template
-
-Use this structure:
-
-```md
-## Summary
-
-- <change 1>
-- <change 2>
-
-## Testing
-
-- `<command>`
-- `<command>`
-
-Closes #<issue-number>
-```
+- The branch remains available in the local repo and on the remote until the PR is merged.
 
 ## Guardrails
 
 - Never `git switch` or `git checkout` in `/workspace`. Use worktrees only.
+- Worktree root is always `/workspace/.worktrees/` — never use `/workspace/worktrees/` or any other path.
 - Never include unrelated file changes in commits.
 - Never remove or revert user changes you did not make.
 - If tooling fails (for example, old `gh` behavior), use `gh api` fallback and verify resulting PR/labels explicitly.
-- Always remove the worktree after the branch is pushed.
+- Always remove the worktree after the branch is pushed. Never delete the branch itself.

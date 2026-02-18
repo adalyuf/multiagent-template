@@ -31,8 +31,8 @@ re-label the issue for another review cycle.
 
 3. Find the related PR.
 
-- Search for a PR that closes the issue: `gh pr list --search "closes #<number> OR fixes #<number> OR resolves #<number>" --state open --json number,title,headRefName,url`.
-- If no PR is found via search, look for PRs with a branch name matching the issue number: `gh pr list --state open --json number,title,headRefName,url` and filter for branches containing `issue-<number>`.
+- Use issue-linked PRs directly: `gh issue view <number> --json linkedPullRequests`.
+- Select the open linked PR targeting the default branch.
 - If no related PR exists, report that the issue has no PR to fix and stop.
 
 4. Read review feedback.
@@ -46,9 +46,9 @@ re-label the issue for another review cycle.
 
 - Create a dedicated worktree for the PR branch:
   - `git fetch origin <branch>`
-  - If local branch exists: `git worktree add ../worktrees/<branch> <branch>`
-  - Else: `git worktree add -b <branch> ../worktrees/<branch> origin/<branch>`
-- Run all fix commands from `../worktrees/<branch>`.
+  - If local branch exists: `git worktree add /workspace/worktrees/<branch> <branch>`
+  - Else: `git worktree add -b <branch> /workspace/worktrees/<branch> origin/<branch>`
+- Run all fix commands from `/workspace/worktrees/<branch>`.
 - Read each file mentioned in the review feedback to understand current state.
 - Read the full PR diff to understand what was already changed: `gh pr diff <number>`.
 
@@ -72,7 +72,9 @@ re-label the issue for another review cycle.
 
 9. Comment on the PR.
 
-- Leave a comment summarizing what was changed: `gh pr comment <number> --body "<summary of changes made>"`.
+- Leave a comment summarizing what was changed, using `--body-file`:
+  - Write comment body to `/tmp/pr-<number>-fix-comment.md`
+  - `gh pr comment <number> --body-file /tmp/pr-<number>-fix-comment.md`
 
 10. Update issue labels.
 
@@ -82,7 +84,7 @@ re-label the issue for another review cycle.
 11. Return to previous branch.
 
 - Return to the original directory and remove the temporary worktree when clean:
-  - `git worktree remove ../worktrees/<branch>`.
+  - `git worktree remove /workspace/worktrees/<branch>`.
 
 ## PR Comment Template
 
@@ -104,6 +106,7 @@ Ready for re-review.
 ## Guardrails
 
 - Never force-push — only regular push to the PR branch.
+- Do not delete branches as part of cleanup; remove the temporary worktree instead.
 - Only change files relevant to the review feedback.
 - Do not modify unrelated code.
 - Do not use `git switch` in the shared root worktree for PR fixes.
