@@ -39,7 +39,11 @@ Run these steps in order. After each step, proceed to the next regardless of whe
 
 - Run all three checks from Steps 1-3 again.
 - If ANY work was found in Steps 1-3, go back to Step 1.
-- If no work was found in any step, report that all work is complete and stop.
+- If no work was found in any step, proceed to Step 5.
+
+### Step 5 — Unwind
+
+- Invoke the `/unwind` skill to write a reflective journal entry, react to Codex's entries, and file issues for any actionable feedback.
 
 ## Priority Order Rationale
 
