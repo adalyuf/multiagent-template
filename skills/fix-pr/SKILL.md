@@ -21,8 +21,13 @@ re-label the issue for another review cycle.
 
 1. Discover issues needing changes.
 
-- Run `gh issue list --label "assigned:codex" --label "needs:changes" --state open --json number,title,labels,assignees`.
-- If none are found, report that and stop.
+- Run both queries:
+  - `gh issue list --label "assigned:codex" --label "needs:changes" --state open --json number,title,labels,assignees`
+  - `gh issue list --label "assigned:claude" --label "needs:changes" --state open --json number,title,labels,assignees`
+- Use the queue that matches your agent:
+  - If you are Codex, use `assigned:codex` results.
+  - If you are Claude, use `assigned:claude` results.
+- If your agent's queue is empty, report that and stop (do not take the other agent's queue unless explicitly asked).
 
 2. Select an issue.
 

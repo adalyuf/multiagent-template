@@ -1,6 +1,6 @@
 ---
 name: work
-description: Continuous work loop that processes all available work in priority order. Fixes PRs with requested changes, reviews Codex PRs, builds features for assigned issues, then repeats until no work remains.
+description: Continuous work loop that processes all available work in priority order. Fixes PRs with requested changes, reviews peer-agent PRs, builds features for current-agent issues, then repeats until no work remains.
 ---
 
 # Work Loop
@@ -16,19 +16,33 @@ Run these steps in order. After each step, proceed to the next regardless of whe
 
 ### Step 1 — Fix PRs with requested changes
 
-- Run `gh issue list --label "assigned:codex" --label "needs:changes" --state open --json number,title`.
+- Run both:
+  - `gh issue list --label "assigned:codex" --label "needs:changes" --state open --json number,title`
+  - `gh issue list --label "assigned:claude" --label "needs:changes" --state open --json number,title`
+- Use your agent queue:
+  - Codex uses `assigned:codex`.
+  - Claude uses `assigned:claude`.
 - If issues are found, invoke the `/fix-pr` skill to address review feedback.
 - Repeat Step 1 until no `needs:changes` issues remain.
 
-### Step 2 — Review Claude PRs
+### Step 2 — Review peer-agent PRs
 
-- Run `gh issue list --label "assigned:claude" --label "needs-review" --state open --json number,title`.
-- If issues are found, invoke the `/review-claude-prs` skill to review each PR.
-- Repeat Step 2 until no `needs-review` Claude issues remain.
+- Run both:
+  - `gh issue list --label "assigned:codex" --label "needs-review" --state open --json number,title`
+  - `gh issue list --label "assigned:claude" --label "needs-review" --state open --json number,title`
+- Use the peer queue via `/review-peer-prs`:
+  - Codex reviews `assigned:claude` issues.
+  - Claude reviews `assigned:codex` issues.
+- Repeat Step 2 until no peer `needs-review` issues remain.
 
 ### Step 3 — Build features
 
-- Run `gh issue list --label "assigned:codex" --state open --json number,title,labels`.
+- Run both:
+  - `gh issue list --label "assigned:codex" --state open --json number,title,labels`
+  - `gh issue list --label "assigned:claude" --state open --json number,title,labels`
+- Use your agent queue:
+  - Codex uses `assigned:codex`.
+  - Claude uses `assigned:claude`.
 - Exclude issues that already have `needs-review` or `needs:changes` labels (they are in-flight).
 - If actionable issues are found, invoke the `/build-feature` skill to pick one and implement it.
 
@@ -45,8 +59,8 @@ Run these steps in order. After each step, proceed to the next regardless of whe
 ## Priority Order Rationale
 
 1. **Fix PRs first** — unblock the review cycle by addressing feedback quickly.
-2. **Review Claude PRs second** — unblock merges for completed work.
-3. **Build features last** — only start new work when existing work is unblocked.
+2. **Review peer PRs second** — unblock merges for completed work.
+3. **Build own-agent features last** — only start new work when existing work is unblocked.
 
 ## Guardrails
 

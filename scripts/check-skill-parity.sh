@@ -7,6 +7,7 @@ pairs=(
   "build-feature:build-feature"
   "fix-pr:fix-pr"
   "issue:issue"
+  "review-peer-prs:review-peer-prs"
   "run-tests:run-tests"
   "unwind:unwind"
   "work:work"

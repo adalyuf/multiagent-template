@@ -4,13 +4,13 @@
 A skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the source for full instructions when using a specific skill.
 
 ### Available skills
-- build-feature: Execute the GitHub workflow for assigned issues: find open issues with label assigned:codex, choose one actionable issue, create a task worktree + branch, implement and verify a fix, open a pull request, and set the needs-review label. Use when asked to take an assigned issue through implementation and PR handoff with gh CLI. (file: /workspace/skills/build-feature/SKILL.md)
+- build-feature: Execute the GitHub workflow for assigned issues: discover both assignee queues, choose one actionable issue from the current-agent queue, create a task worktree + branch, implement and verify a fix, open a pull request, and set the needs-review label. Use when asked to take an assigned issue through implementation and PR handoff with gh CLI. (file: /workspace/skills/build-feature/SKILL.md)
 - fix-pr: Find issues labeled needs:changes, read the review feedback on the related PR, implement the requested changes, push updates, and re-label for review. Use when asked to address PR review feedback. (file: /workspace/skills/fix-pr/SKILL.md)
 - issue: Create a GitHub issue for a feature request or bug fix. (file: /workspace/skills/issue/SKILL.md)
-- review-claude-prs: Find issues labeled assigned:claude and needs-review, locate the related PR, review the code changes, and either comment with approval and merge, or request changes. Use when asked to review Claude-generated PRs. (file: /workspace/skills/review-claude-prs/SKILL.md)
+- review-peer-prs: Find issues in the peer agent's queue labeled needs-review, locate the related PR, review the code changes, and either comment with approval and merge, or request changes. Use when asked to review peer-generated PRs. (file: /workspace/skills/review-peer-prs/SKILL.md)
 - run-tests: Run the backend and frontend test suites inside their respective Docker containers and report results. Use when asked to run tests, verify a fix, or check that nothing is broken. (file: /workspace/skills/run-tests/SKILL.md)
 - unwind: Append a reflective end-of-session entry to daily files under unwind/, read Claude's entries and react to any you agree with, and file GitHub issues for actionable feedback. (file: /workspace/skills/unwind/SKILL.md)
-- work: Continuous work loop that processes all available work in priority order. Fixes PRs with requested changes, reviews Codex PRs, builds features for assigned issues, then repeats until no work remains. (file: /workspace/skills/work/SKILL.md)
+- work: Continuous work loop that processes all available work in priority order. Fixes PRs with requested changes, reviews peer-agent PRs, builds features for current-agent issues, then repeats until no work remains. (file: /workspace/skills/work/SKILL.md)
 
 ### How to use skills
 - Discovery: The list above is the skills available in this session (name + description + file path). Skill bodies live on disk at the listed paths.

@@ -1,6 +1,6 @@
 ---
 name: build-feature
-description: "Execute the GitHub workflow for assigned issues: find open issues with label assigned:codex, choose one actionable issue, create a task worktree + branch, implement and verify a fix, open a pull request, and set the needs-review label. Use when asked to take an assigned issue through implementation and PR handoff with gh CLI."
+description: "Execute the GitHub workflow for assigned issues: discover both assignee queues, pick an actionable issue from the current-agent queue, create a task worktree + branch, implement and verify a fix, open a pull request, and set the needs-review label. Use when asked to take an assigned issue through implementation and PR handoff with gh CLI."
 ---
 
 # GitHub Assigned Issue PR
@@ -26,14 +26,21 @@ Prioritize correctness, minimal diffs, and explicit verification.
 
 1. Discover assigned issues.
 
-- Run `gh issue list --label assigned:codex --state open`.
-- If none are assigned, report that and stop.
+- Run both:
+  - `gh issue list --label assigned:codex --state open`
+  - `gh issue list --label assigned:claude --state open`
+- Use your agent queue:
+  - Codex uses `assigned:codex`.
+  - Claude uses `assigned:claude`.
+- If your queue is empty, report that and stop.
 
 2. Select the issue.
 
 - Prefer issue labels or severity guidance if present.
 - Read issue details with `gh issue view <number>`.
-- Add the `assigned:codex` label if missing: `gh issue edit <number> --add-label assigned:codex`.
+- Ensure the issue has your agent label:
+  - Codex: `gh issue edit <number> --add-label assigned:codex`
+  - Claude: `gh issue edit <number> --add-label assigned:claude`
 
 3. Create task worktree and branch.
 
@@ -94,7 +101,7 @@ Prioritize correctness, minimal diffs, and explicit verification.
 
 10. Continue queue processing.
 
-- After finishing the PR handoff, call `build-feature` again to pick up the next `assigned:codex` issue.
+- After finishing the PR handoff, call `build-feature` again to pick up the next issue from your agent queue.
 - Remove the issue worktree after handoff if it is clean:
   - First, remove any dependency symlinks created in step 3:
     ```
