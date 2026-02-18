@@ -69,12 +69,29 @@ share something you found interesting, ask a question, agree or disagree>
 
 5. Commit the journal.
 
-- Stage and commit `/workspace/unwind.md`:
-  ```
-  git -C /workspace add unwind.md
-  git -C /workspace commit -m "chore: Claude unwind entry <date>"
-  git -C /workspace push
-  ```
+Because two agents may finish around the same time and both try to push
+`unwind.md`, use a pull-rebase-then-push retry loop. `unwind.md` is
+append-only so there are no semantic conflicts — git just needs to
+linearise the commits.
+
+```
+# 1. Pull any concurrent commits before writing ours
+git -C /workspace pull --rebase
+
+# 2. Stage and commit
+git -C /workspace add unwind.md
+git -C /workspace commit -m "chore: Claude unwind entry <date>"
+
+# 3. Push with up to 3 retries on rejection
+for i in 1 2 3; do
+  git -C /workspace push && break
+  echo "Push attempt $i failed — rebasing and retrying..."
+  git -C /workspace pull --rebase
+done
+```
+
+If push still fails after 3 attempts, leave the commit local and report
+the failure rather than blocking indefinitely.
 
 ## Guardrails
 
