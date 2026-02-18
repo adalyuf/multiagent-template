@@ -1,8 +1,9 @@
 import React, { useRef, useEffect } from 'react'
 import * as d3 from 'd3'
 import { seasonColors } from '../utils/colors'
+import { parseSeason } from '../utils/seasons'
 
-export default function HistoricalChart({ data, country = '' }) {
+export default function HistoricalChart({ data, country = '', forecast = null }) {
   const svgRef = useRef()
 
   useEffect(() => {
@@ -21,7 +22,21 @@ export default function HistoricalChart({ data, country = '' }) {
     const seasons = [...bySeason.keys()].sort().slice(-10)
 
     const xExtent = [0, 52]
-    const yMax = d3.max(data, d => d.cases) || 1
+
+    // Compute forecast points in week-offset space for yMax calculation
+    const fcastPoints = forecast
+      ? (forecast.forecast || []).map(d => ({
+          weekOffset: parseSeason(d.date).weekOffset,
+          forecast: d.forecast || 0,
+          lower: d.lower || 0,
+          upper: d.upper || 0,
+        }))
+      : []
+
+    const yMax = Math.max(
+      d3.max(data, d => d.cases) || 1,
+      d3.max(fcastPoints, d => d.upper) || 0,
+    )
 
     const x = d3.scaleLinear().domain(xExtent).range([margin.left, width - margin.right])
     const y = d3.scaleLinear().domain([0, yMax]).range([height - margin.bottom, margin.top])
@@ -67,14 +82,66 @@ export default function HistoricalChart({ data, country = '' }) {
         .attr('opacity', isCurrent ? 1 : 0.6)
         .text(season)
     })
-  }, [data])
+
+    // Forecast series: confidence band + dashed line
+    if (fcastPoints.length > 0) {
+      const validFcast = fcastPoints.filter(d => d.weekOffset >= 0 && d.weekOffset <= 60)
+        .sort((a, b) => a.weekOffset - b.weekOffset)
+
+      if (validFcast.length > 0) {
+        // Confidence interval band
+        const area = d3.area()
+          .x(d => x(d.weekOffset))
+          .y0(d => y(d.lower))
+          .y1(d => y(d.upper))
+          .curve(d3.curveMonotoneX)
+
+        svg.append('path')
+          .datum(validFcast)
+          .attr('d', area)
+          .attr('fill', 'rgba(245, 158, 11, 0.12)')
+
+        // Forecast dashed line
+        const fline = d3.line()
+          .x(d => x(d.weekOffset))
+          .y(d => y(d.forecast))
+          .curve(d3.curveMonotoneX)
+
+        svg.append('path')
+          .datum(validFcast)
+          .attr('d', fline)
+          .attr('fill', 'none')
+          .attr('stroke', '#f59e0b')
+          .attr('stroke-width', 2)
+          .attr('stroke-dasharray', '6,3')
+
+        // Forecast legend entry
+        const legendY = margin.top + seasons.length * 16
+        svg.append('line')
+          .attr('x1', width - margin.right + 8)
+          .attr('x2', width - margin.right + 22)
+          .attr('y1', legendY + 4)
+          .attr('y2', legendY + 4)
+          .attr('stroke', '#f59e0b')
+          .attr('stroke-width', 2)
+          .attr('stroke-dasharray', '4,2')
+
+        svg.append('text')
+          .attr('x', width - margin.right + 26)
+          .attr('y', legendY + 8)
+          .attr('fill', '#f59e0b')
+          .attr('font-size', '0.65rem')
+          .text('Forecast')
+      }
+    }
+  }, [data, forecast])
 
   return (
     <div style={{ background: '#0d1117', borderRadius: 8, padding: 12, border: '1px solid #2a2a4a' }}>
       <h3 style={{ fontSize: '0.9rem', color: '#ccc', marginBottom: 8 }}>
         Historical Season Comparison{country ? ` (${country})` : ' (Global)'}
       </h3>
-      <svg ref={svgRef} style={{ width: '100%', height: 'auto' }} role="img" aria-label="Line chart comparing historical seasonal flu cases" />
+      <svg ref={svgRef} style={{ width: '100%', height: 'auto' }} role="img" aria-label="Line chart comparing historical seasonal flu cases with forecast" />
     </div>
   )
 }

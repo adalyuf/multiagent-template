@@ -5,11 +5,9 @@ import Header from '../components/Header'
 import AlertBar from '../components/AlertBar'
 import ChoroplethMap from '../components/ChoroplethMap'
 import HistoricalChart from '../components/HistoricalChart'
-import CompareChart from '../components/CompareChart'
 import CladeTrends from '../components/CladeTrends'
 import SubtypeTrends from '../components/SubtypeTrends'
 import CountryTable from '../components/CountryTable'
-import ForecastChart from '../components/ForecastChart'
 import ErrorBoundary from '../components/ErrorBoundary'
 
 const grid2 = {
@@ -44,10 +42,14 @@ export default function Dashboard() {
     () => api.historical(historicalParams),
     [selectedCountry],
   )
+  const forecastParams = selectedCountry ? `country=${selectedCountry}` : ''
+  const { data: forecast, error: forecastError } = useApi(
+    () => api.forecast(forecastParams),
+    [selectedCountry],
+  )
   const { data: subtypes, error: subtypesError } = useApi(() => api.subtypes(), [])
   const { data: countries, error: countriesError } = useApi(() => api.countries(), [])
   const { data: anomalies, error: anomaliesError } = useApi(() => api.anomalies(), [])
-  const { data: forecast, error: forecastError } = useApi(() => api.forecast(), [])
   const { data: cladeTrends, error: cladeTrendsError } = useApi(() => api.genomicTrends(), [])
 
   return (
@@ -75,7 +77,7 @@ export default function Dashboard() {
         </ErrorBoundary>
       )}
 
-      {/* Main grid: Map + Historical */}
+      {/* Main grid: Map + Historical (with integrated trend & forecast) */}
       <div style={grid2}>
         {mapError ? (
           <ErrorCard message="Failed to load map data — please refresh." />
@@ -92,18 +94,12 @@ export default function Dashboard() {
           <ErrorCard message="Failed to load historical data — please refresh." />
         ) : (
           <ErrorBoundary>
-            <HistoricalChart data={historical} country={selectedCountry} />
+            <HistoricalChart
+              data={historical}
+              country={selectedCountry}
+              forecast={forecastError ? null : forecast}
+            />
           </ErrorBoundary>
-        )}
-      </div>
-
-      {/* Compare + Forecast */}
-      <div style={grid2}>
-        <ErrorBoundary><CompareChart /></ErrorBoundary>
-        {forecastError ? (
-          <ErrorCard message="Failed to load forecast data — please refresh." />
-        ) : (
-          <ErrorBoundary><ForecastChart data={forecast} /></ErrorBoundary>
         )}
       </div>
 
