@@ -25,12 +25,15 @@ Use `gh` to submit the issue and return the URL.
 
 - Bug: `bug`
 - Feature request: `enhancement`
-- Balance workload between agents by checking open issue counts:
+- Balance workload between agents by counting only *actionable* open issues
+  (exclude issues already in the review cycle via `needs-review` or `needs:changes`):
   ```
-  gh issue list --label assigned:claude --state open --json number | jq length
-  gh issue list --label assigned:codex --state open --json number | jq length
+  gh issue list --label assigned:claude --state open --json number,labels \
+    | jq '[.[] | select(.labels | map(.name) | (contains(["needs-review"]) or contains(["needs:changes"])) | not)] | length'
+  gh issue list --label assigned:codex --state open --json number,labels \
+    | jq '[.[] | select(.labels | map(.name) | (contains(["needs-review"]) or contains(["needs:changes"])) | not)] | length'
   ```
-  Assign to whichever agent has fewer open issues (`assigned:claude` or `assigned:codex`).
+  Assign to whichever agent has fewer actionable open issues.
   Break ties by assigning to `assigned:claude`.
 - Add any other relevant labels that already exist in the repo (check with `gh label list`).
 
