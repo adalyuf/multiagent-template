@@ -45,7 +45,7 @@ function severityLabel(severity) {
 export default function AlertBar({ anomalies, loadError }) {
   if (loadError) {
     return (
-      <div style={styles.bar}>
+      <div style={styles.bar} role="region" aria-label="Anomaly alerts">
         <span style={{ ...styles.empty, color: '#f87171' }}>Unable to load anomaly alerts — please refresh.</span>
       </div>
     )
@@ -53,14 +53,14 @@ export default function AlertBar({ anomalies, loadError }) {
 
   if (!anomalies || anomalies.length === 0) {
     return (
-      <div style={styles.bar}>
+      <div style={styles.bar} role="region" aria-label="Anomaly alerts">
         <span style={styles.empty}>No active anomalies</span>
       </div>
     )
   }
 
   return (
-    <div style={styles.bar}>
+    <div style={styles.bar} role="region" aria-label="Anomaly alerts">
       {anomalies.map((a, i) => (
         <div key={a.id || i} style={styles.chip}>
           <span style={styles.dot(a.severity)} aria-hidden="true" />

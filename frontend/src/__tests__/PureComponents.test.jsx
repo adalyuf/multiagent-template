@@ -11,11 +11,13 @@ import { severityColor } from '../utils/colors'
 describe('AlertBar', () => {
   it('renders empty state when anomalies list is empty', () => {
     render(<AlertBar anomalies={[]} />)
+    expect(screen.getByRole('region', { name: 'Anomaly alerts' })).toBeInTheDocument()
     expect(screen.getByText('No active anomalies')).toBeInTheDocument()
   })
 
   it('renders load error state', () => {
     render(<AlertBar anomalies={[]} loadError />)
+    expect(screen.getByRole('region', { name: 'Anomaly alerts' })).toBeInTheDocument()
     expect(screen.getByText('Unable to load anomaly alerts — please refresh.')).toBeInTheDocument()
   })
 

@@ -87,6 +87,7 @@ describe('Dashboard', () => {
     expect(screen.getByText('This Week')).toBeInTheDocument()
     expect(screen.getByText('Week Change')).toBeInTheDocument()
 
+    expect(screen.getByRole('region', { name: 'Anomaly alerts' })).toBeInTheDocument()
     expect(screen.getByText('No active anomalies')).toBeInTheDocument()
 
     await waitFor(() => expect(screen.getByText('Country Dashboard')).toBeInTheDocument())
@@ -108,6 +109,11 @@ describe('Dashboard', () => {
     api.anomalies.mockRejectedValue(new Error('anomalies failed'))
     renderDashboard()
 
+    await waitFor(() =>
+      expect(
+        screen.getByRole('region', { name: 'Anomaly alerts' }),
+      ).toBeInTheDocument(),
+    )
     await waitFor(() =>
       expect(
         screen.getByText('Unable to load anomaly alerts — please refresh.'),
