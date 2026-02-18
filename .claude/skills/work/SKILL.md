@@ -14,6 +14,16 @@ Run implementation/fix/review actions in per-task git worktrees so multiple agen
 
 Run these steps in order. After each step, proceed to the next regardless of whether work was found.
 
+### Step 0 — Clean up stale labels
+
+Run once at loop startup to remove agent-workflow labels (`needs-review`, `needs:changes`) from any issues that were auto-closed by GitHub via `Closes #N` merges without the label being stripped first:
+
+```bash
+bash scripts/cleanup-stale-labels.sh
+```
+
+This prevents ghost entries from appearing in subsequent label-based queries.
+
 ### Step 1 — Fix PRs with requested changes
 
 - Run both:

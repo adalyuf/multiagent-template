@@ -67,8 +67,8 @@ Find GitHub issues ready for review in the peer agent queue, locate the associat
 
 - If approved:
   - Post review summary comment using `--body-file`.
-  - Update issue labels:
-    - `gh issue edit <number> --remove-label "needs-review" --add-label "reviewed:approved"`
+  - Update issue labels (remove all in-flight workflow labels to prevent stale labels after auto-close):
+    - `gh issue edit <number> --remove-label "needs-review" --remove-label "needs:changes" --add-label "reviewed:approved"`
   - Ensure required checks are green.
   - Merge PR:
     - `gh pr merge <pr-number> --merge --delete-branch`
