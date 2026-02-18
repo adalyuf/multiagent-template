@@ -7,7 +7,8 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "lint": "eslint ."
   },
   "dependencies": {
     "react": "^18.3.1",
@@ -17,11 +18,16 @@
     "topojson-client": "^3.1.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.0.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.1.0",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^9.0.0",
+    "eslint-plugin-import-x": "^4.0.0",
+    "eslint-plugin-react": "^7.37.0",
+    "globals": "^15.0.0",
     "jsdom": "^25.0.1",
     "vitest": "^2.1.8",
     "vite": "^6.0.3"
