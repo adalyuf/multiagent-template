@@ -76,7 +76,8 @@ Prioritize correctness, minimal diffs, and explicit verification.
 
 - After finishing the PR handoff, call `build-feature` again to pick up the next `assigned:codex` issue.
 - Remove the issue worktree after handoff if it is clean:
-  - `git worktree remove /workspace/worktrees/<branch>`.
+  - Return to the root workspace first: `cd /workspace`.
+  - Remove from root workspace: `cd /workspace && git worktree remove /workspace/worktrees/<branch>`.
 
 ## PR Body Template
 

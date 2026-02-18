@@ -81,9 +81,10 @@ re-label the issue for another review cycle.
 - Remove `needs:changes`: `gh issue edit <number> --remove-label "needs:changes"`.
 - Add `needs-review`: `gh issue edit <number> --add-label "needs-review"`.
 
-11. Return to previous branch.
+11. Return to workspace root and clean up worktree.
 
-- Return to the original directory and remove the temporary worktree when clean:
+- Change working directory back to `/workspace` before removing the worktree (removing the current directory will fail).
+- Remove the temporary worktree when clean:
   - `git worktree remove /workspace/worktrees/<branch>`.
 
 ## PR Comment Template

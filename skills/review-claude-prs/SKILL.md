@@ -43,7 +43,8 @@ locate the associated PR, perform a code review, and either approve
 - If local execution is needed, use a temporary review worktree instead of switching branches:
   - `git fetch origin <headRefName>`
   - `git worktree add /workspace/worktrees/review-pr-<number> origin/<headRefName>`
-  - Run local checks there, then remove it: `git worktree remove /workspace/worktrees/review-pr-<number>`.
+  - Run local checks there, then remove it from the root workspace:
+    - `cd /workspace && git worktree remove /workspace/worktrees/review-pr-<number>`.
 - Review the code changes for:
   - **Correctness**: Does the change actually fix the issue?
   - **Tests**: Are there appropriate tests for the change?
@@ -61,7 +62,8 @@ locate the associated PR, perform a code review, and either approve
   - Update the issue: remove `needs-review`, add `reviewed:approved`: `gh issue edit <number> --remove-label "needs-review" --add-label "reviewed:approved"`.
   - Ensure all required checks are green before merge: `gh pr checks <number> --required`
   - Merge the PR: `gh pr merge <number> --merge --delete-branch`.
-  - If a temporary review worktree was created, remove it after review completion: `git worktree remove /workspace/worktrees/review-pr-<number>`.
+  - If a temporary review worktree was created, remove it after review completion from the root workspace:
+    - `cd /workspace && git worktree remove /workspace/worktrees/review-pr-<number>`.
 - **If changes needed** (problems found):
   - Leave a comment on the PR with detailed feedback using `--body-file`:
     - write `/tmp/pr-<number>-review.md`
@@ -101,3 +103,4 @@ Use this structure in PR comments:
 - If CI is failing, include that in the review as a reason for requesting changes. Do not merge.
 - Review the full diff, not just a summary.
 - Prefer temporary worktrees for any local PR validation.
+- Always leave the review worktree directory before cleanup; remove worktrees only from `/workspace`.
