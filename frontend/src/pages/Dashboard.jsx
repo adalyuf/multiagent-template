@@ -98,6 +98,7 @@ export default function Dashboard() {
               data={historical}
               country={selectedCountry}
               forecast={forecastError ? null : forecast}
+              forecastUnavailable={!!forecastError}
             />
           </ErrorBoundary>
         )}

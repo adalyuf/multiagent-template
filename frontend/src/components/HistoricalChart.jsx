@@ -3,7 +3,7 @@ import * as d3 from 'd3'
 import { seasonColors } from '../utils/colors'
 import { parseSeason } from '../utils/seasons'
 
-export default function HistoricalChart({ data, country = '', forecast = null }) {
+export default function HistoricalChart({ data, country = '', forecast = null, forecastUnavailable = false }) {
   const svgRef = useRef()
 
   useEffect(() => {
@@ -85,7 +85,7 @@ export default function HistoricalChart({ data, country = '', forecast = null })
 
     // Forecast series: confidence band + dashed line
     if (fcastPoints.length > 0) {
-      const validFcast = fcastPoints.filter(d => d.weekOffset >= 0 && d.weekOffset <= 60)
+      const validFcast = fcastPoints.filter(d => d.weekOffset >= xExtent[0] && d.weekOffset <= xExtent[1])
         .sort((a, b) => a.weekOffset - b.weekOffset)
 
       if (validFcast.length > 0) {
@@ -138,9 +138,16 @@ export default function HistoricalChart({ data, country = '', forecast = null })
 
   return (
     <div style={{ background: '#0d1117', borderRadius: 8, padding: 12, border: '1px solid #2a2a4a' }}>
-      <h3 style={{ fontSize: '0.9rem', color: '#ccc', marginBottom: 8 }}>
-        Historical Season Comparison{country ? ` (${country})` : ' (Global)'}
-      </h3>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 8 }}>
+        <h3 style={{ fontSize: '0.9rem', color: '#ccc', margin: 0 }}>
+          Historical Season Comparison{country ? ` (${country})` : ' (Global)'}
+        </h3>
+        {forecastUnavailable && (
+          <span style={{ fontSize: '0.7rem', color: '#888', fontStyle: 'italic' }}>
+            forecast unavailable
+          </span>
+        )}
+      </div>
       <svg ref={svgRef} style={{ width: '100%', height: 'auto' }} role="img" aria-label="Line chart comparing historical seasonal flu cases with forecast" />
     </div>
   )
