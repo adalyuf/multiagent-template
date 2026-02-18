@@ -29,6 +29,7 @@ LAST_RESORT = {"INF_ALL", "ALL_INF"}
 SPECIFIC_FIELDS = list(SUBTYPE_MAP.keys())
 AGGREGATE_FIELDS = list(AGGREGATE_MAP.keys())
 LAST_RESORT_FIELDS = list(LAST_RESORT)
+FULL_BACKFILL_YEARS = 10
 
 
 def _parse_week_date(iso_year: int, iso_week: int) -> datetime:
@@ -66,20 +67,37 @@ async def fetch_flunet(weeks_back: int = 4):
     return _process_records(records)
 
 
-async def fetch_flunet_full():
-    """Full backfill — fetch all available data."""
-    url = f"{FLUNET_URL}?$top=120000"
+async def fetch_flunet_full(years_back: int = FULL_BACKFILL_YEARS):
+    """Fetch a bounded multi-year backfill window from FluNet."""
+    current_year = datetime.utcnow().year
+    # Include the current partial year plus the preceding full `years_back`
+    # years so the startup span can satisfy a full 10-year requirement.
+    start_year = current_year - years_back
     records = []
-    async with httpx.AsyncClient(timeout=180) as client:
-        while url:
-            logger.info(f"Fetching FluNet (full): {url[:120]}...")
-            resp = await client.get(url)
-            resp.raise_for_status()
-            data = resp.json()
-            records.extend(data.get("value", []))
-            url = data.get("@odata.nextLink")
 
-    logger.info(f"Fetched {len(records)} raw FluNet records (full)")
+    async with httpx.AsyncClient(timeout=180) as client:
+        for year in range(start_year, current_year + 1):
+            url = (
+                f"{FLUNET_URL}?$filter=ISO_YEAR ge {year} and ISO_YEAR lt {year + 1}"
+                f"&$top=50000"
+            )
+            year_records = 0
+            while url:
+                logger.info("Fetching FluNet backfill year %s: %s...", year, url[:120])
+                resp = await client.get(url)
+                resp.raise_for_status()
+                data = resp.json()
+                page = data.get("value", [])
+                year_records += len(page)
+                records.extend(page)
+                url = data.get("@odata.nextLink")
+            logger.info("Fetched %s raw FluNet records for year %s", year_records, year)
+
+    logger.info(
+        "Fetched %s raw FluNet records for %s-year backfill",
+        len(records),
+        years_back,
+    )
     return _process_records(records)
 
 

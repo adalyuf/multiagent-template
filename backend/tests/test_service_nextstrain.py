@@ -2,7 +2,11 @@ from datetime import date
 
 import pytest
 
-from app.services.nextstrain import normalize_country_code, _walk_tree
+from app.services.nextstrain import NEXTSTRAIN_URL, normalize_country_code, _walk_tree
+
+
+def test_nextstrain_dataset_uses_at_least_10_year_window():
+    assert "/12y" in NEXTSTRAIN_URL
 
 
 # --- normalize_country_code tests ---

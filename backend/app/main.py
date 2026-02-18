@@ -7,7 +7,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
-from app.scheduler import create_scheduler, init_db, run_startup_jobs
+from app.scheduler import create_scheduler, init_db, run_startup_jobs, get_backfill_status
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
@@ -54,3 +54,8 @@ app.include_router(forecast_router.router, prefix="/api")
 @app.get("/api/health")
 async def health():
     return {"status": "ok"}
+
+
+@app.get("/api/health/backfill")
+async def health_backfill():
+    return await get_backfill_status()

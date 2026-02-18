@@ -8,7 +8,7 @@ from app.models import GenomicSequence
 
 logger = logging.getLogger(__name__)
 
-NEXTSTRAIN_URL = "https://nextstrain.org/charon/getDataset?prefix=/flu/seasonal/h3n2/ha/2y"
+NEXTSTRAIN_URL = "https://nextstrain.org/charon/getDataset?prefix=/flu/seasonal/h3n2/ha/12y"
 
 # Mapping of Nextstrain country names to ISO 2-letter country codes
 # Nextstrain uses various formats: full names (United States), abbreviations (USA), or ISO codes

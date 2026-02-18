@@ -27,6 +27,7 @@ TestSession = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=F
 # All modules that do "from app.database import async_session"
 _MODULES_USING_SESSION = [
     "app.database",
+    "app.scheduler",
     "app.routers.cases",
     "app.routers.genomics",
     "app.routers.anomalies",
