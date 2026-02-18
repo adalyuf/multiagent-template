@@ -55,6 +55,7 @@ Run these steps in order. After each step, proceed to the next regardless of whe
 ### Step 5 — Unwind
 
 - Invoke the `/unwind` skill to write a reflective journal entry, react to Claude's entries, and file issues for any actionable feedback.
+- After unwind edits are made, suggest committing and pushing the updated `unwind/<YYYY-MM-DD>.md` file.
 
 ## Priority Order Rationale
 

@@ -34,7 +34,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   nano \
   vim \
   xdg-utils \
+  locales \
+  tzdata \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Configure locale and timezone defaults for East Coast US (Boston)
+RUN sed -i 's/^# *\(en_US.UTF-8 UTF-8\)/\1/' /etc/locale.gen && \
+  locale-gen en_US.UTF-8 && \
+  update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 && \
+  ln -snf /usr/share/zoneinfo/America/New_York /etc/localtime && \
+  echo America/New_York > /etc/timezone
 
 # Ensure default node user has access to /usr/local/share
 RUN mkdir -p /usr/local/share/npm-global && \
@@ -50,6 +59,9 @@ RUN SNIPPET="export PROMPT_COMMAND='history -a' && export HISTFILE=/commandhisto
 
 # Set `DEVCONTAINER` environment variable to help with orientation
 ENV DEVCONTAINER=true
+ENV TZ=America/New_York
+ENV LANG=en_US.UTF-8
+ENV LC_ALL=en_US.UTF-8
 
 # Create workspace and config directories and set permissions
 RUN mkdir -p /workspace /home/node/.claude /home/node/.config/gh /home/node/.codex /home/node/.railway && \
