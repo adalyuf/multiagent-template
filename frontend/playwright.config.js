@@ -1,3 +1,5 @@
+// Authoritative Playwright configuration used by CI.
+// All E2E specs belong in frontend/e2e/ — do not add tests to the root e2e/ directory.
 import { defineConfig } from '@playwright/test'
 
 export default defineConfig({

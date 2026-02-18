@@ -142,6 +142,21 @@ cd frontend
 npm test
 ```
 
+Run E2E tests (requires the full app stack running):
+
+```bash
+# Start the stack first
+docker compose up -d --build
+
+# Then run Playwright from the frontend directory — this is the authoritative E2E suite
+cd frontend
+npx playwright test
+```
+
+> **Adding new E2E tests:** All E2E specs live in `frontend/e2e/`. Add new spec files
+> there. The `frontend/playwright.config.js` controls test discovery and is what CI uses.
+> Do not add tests to the root-level `e2e/` directory — it is not wired to CI.
+
 Check Codex/Claude skill parity:
 
 ```bash
