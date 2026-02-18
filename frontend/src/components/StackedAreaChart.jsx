@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from 'react'
 import * as d3 from 'd3'
-
-const CARD_STYLE = { background: '#0d1117', borderRadius: 8, padding: 12, border: '1px solid #2a2a4a' }
+import { SkeletonChart } from './Skeleton'
 
 function resolveColor(colorScale, key) {
   if (typeof colorScale === 'function') return colorScale(key)
@@ -64,12 +63,14 @@ export default function StackedAreaChart({
     svg.append('g')
       .attr('transform', `translate(0,${height - margin.bottom})`)
       .call(d3.axisBottom(x).ticks(6))
-      .attr('color', '#666')
+      .style('color', '#4a4f62')
+      .selectAll('text').style('font-family', 'var(--font-mono)').style('font-size', '0.55rem')
 
     svg.append('g')
       .attr('transform', `translate(${margin.left},0)`)
       .call(d3.axisLeft(y).ticks(5).tickFormat(d3.format('.2s')))
-      .attr('color', '#666')
+      .style('color', '#4a4f62')
+      .selectAll('text').style('font-family', 'var(--font-mono)').style('font-size', '0.55rem')
 
     const area = d3.area()
       .x((_, i) => x(matrix[i].date))
@@ -89,22 +90,34 @@ export default function StackedAreaChart({
       svg.append('rect')
         .attr('x', width - margin.right + 8)
         .attr('y', margin.top + i * 18)
-        .attr('width', 12)
-        .attr('height', 12)
+        .attr('width', 10)
+        .attr('height', 10)
+        .attr('rx', 2)
         .attr('fill', resolveColor(colorScale, key))
       svg.append('text')
-        .attr('x', width - margin.right + 24)
-        .attr('y', margin.top + i * 18 + 10)
-        .attr('fill', '#ccc')
-        .attr('font-size', '0.6rem')
+        .attr('x', width - margin.right + 22)
+        .attr('y', margin.top + i * 18 + 9)
+        .attr('fill', '#8b90a5')
+        .style('font-size', '0.55rem')
+        .style('font-family', 'var(--font-display)')
         .text(key)
     })
   }, [colorScale, data, keys, seriesAccessor, xAccessor, yAccessor])
 
+  if (!data || data.length === 0) {
+    return <SkeletonChart height={240} />
+  }
+
   return (
-    <div style={CARD_STYLE}>
+    <div className="card fade-in-up" style={{ padding: 12 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <h3 style={{ fontSize: '0.9rem', color: '#ccc' }}>{title}</h3>
+        <h3 style={{
+          fontSize: '0.82rem',
+          color: 'var(--text-secondary)',
+          fontWeight: 600,
+        }}>
+          {title}
+        </h3>
         {headerAction}
       </div>
       <svg

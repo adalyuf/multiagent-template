@@ -3,6 +3,7 @@ import * as d3 from 'd3'
 import * as topojson from 'topojson-client'
 import { numericToIso } from '../utils/isoMap'
 import { mapColorScale } from '../utils/colors'
+import { SkeletonChart } from './Skeleton'
 
 const WORLD_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
 let worldMapPromise = null
@@ -35,12 +36,12 @@ export default function ChoroplethMap({ data, selectedCountry = '', onSelectCoun
     const projection = d3.geoNaturalEarth1().fitSize([width, height], { type: 'Sphere' })
     const path = d3.geoPath(projection)
 
-    // Background
+    // Background sphere
     svg.append('path')
       .datum({ type: 'Sphere' })
       .attr('d', path)
-      .attr('fill', '#0d1117')
-      .attr('stroke', '#333')
+      .attr('fill', '#0a0c14')
+      .attr('stroke', '#252a3a')
 
     getWorldMap(WORLD_URL)
       .then(world => {
@@ -53,17 +54,18 @@ export default function ChoroplethMap({ data, selectedCountry = '', onSelectCoun
           .attr('fill', d => {
             const iso = numericToIso(+d.id)
             const val = iso ? dataMap[iso] : null
-            return val != null ? mapColorScale(val) : '#1a1a2e'
+            return val != null ? mapColorScale(val) : '#181c28'
           })
           .attr('cursor', d => (numericToIso(+d.id) ? 'pointer' : 'default'))
           .attr('stroke', d => {
             const iso = numericToIso(+d.id)
-            return iso && iso === selectedCountry ? '#f59e0b' : '#333'
+            return iso && iso === selectedCountry ? '#22d3ee' : '#252a3a'
           })
           .attr('stroke-width', d => {
             const iso = numericToIso(+d.id)
             return iso && iso === selectedCountry ? 1.8 : 0.5
           })
+          .style('transition', 'stroke 0.2s ease, stroke-width 0.2s ease')
           .on('click', (_, d) => {
             const iso = numericToIso(+d.id)
             if (!iso) return
@@ -78,14 +80,31 @@ export default function ChoroplethMap({ data, selectedCountry = '', onSelectCoun
       })
   }, [data, selectedCountry, onSelectCountry])
 
+  if (!data) {
+    return <SkeletonChart height={300} />
+  }
+
   return (
-    <div style={{ background: '#0d1117', borderRadius: 8, padding: 12, border: '1px solid #2a2a4a' }}>
-      <h3 style={{ fontSize: '0.9rem', color: '#ccc', marginBottom: 8 }}>Global Cases (per 100k, last 4 weeks)</h3>
+    <div className="card fade-in-up" style={{ padding: 12 }}>
+      <h3 style={{
+        fontSize: '0.82rem',
+        color: 'var(--text-secondary)',
+        marginBottom: 8,
+        fontWeight: 600,
+      }}>
+        Global Cases <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(per 100k, last 4 weeks)</span>
+      </h3>
       <svg ref={svgRef} style={{ width: '100%', height: 'auto' }} role="img" aria-label="World choropleth map of flu cases per 100k people" />
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: '#888', marginTop: 4 }}>
-        <span>0</span>
-        <div style={{ flex: 1, height: 8, margin: '0 8px', background: 'linear-gradient(to right, #ffffcc, #fd8d3c, #e31a1c, #800026)', borderRadius: 4 }} />
-        <span>40+</span>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: 4 }}>
+        <span className="mono">0</span>
+        <div style={{
+          flex: 1,
+          height: 6,
+          margin: '0 8px',
+          background: 'linear-gradient(to right, #ffffcc, #fd8d3c, #e31a1c, #800026)',
+          borderRadius: 3,
+        }} />
+        <span className="mono">40+</span>
       </div>
     </div>
   )

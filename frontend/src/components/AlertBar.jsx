@@ -3,10 +3,10 @@ import React from 'react'
 const styles = {
   bar: {
     display: 'flex',
-    gap: '8px',
+    gap: 8,
     padding: '8px 24px',
-    background: 'rgba(239, 68, 68, 0.1)',
-    borderBottom: '1px solid rgba(239, 68, 68, 0.3)',
+    background: 'rgba(239, 68, 68, 0.06)',
+    borderBottom: '1px solid rgba(239, 68, 68, 0.2)',
     overflowX: 'auto',
     minHeight: 40,
     alignItems: 'center',
@@ -14,14 +14,15 @@ const styles = {
   chip: {
     display: 'flex',
     alignItems: 'center',
-    gap: '6px',
+    gap: 6,
     padding: '4px 12px',
-    background: 'rgba(239, 68, 68, 0.15)',
-    border: '1px solid rgba(239, 68, 68, 0.3)',
-    borderRadius: '16px',
-    fontSize: '0.8rem',
+    background: 'rgba(239, 68, 68, 0.1)',
+    border: '1px solid rgba(239, 68, 68, 0.2)',
+    borderRadius: 16,
+    fontSize: '0.78rem',
     whiteSpace: 'nowrap',
     color: '#fca5a5',
+    fontFamily: 'var(--font-display)',
   },
   severityText: { fontWeight: 600, color: '#fecaca' },
   dot: (severity) => ({
@@ -29,8 +30,9 @@ const styles = {
     height: 8,
     borderRadius: '50%',
     background: severity === 'high' ? '#ef4444' : '#f59e0b',
+    boxShadow: severity === 'high' ? '0 0 6px rgba(239, 68, 68, 0.4)' : 'none',
   }),
-  empty: { fontSize: '0.8rem', color: '#666' },
+  empty: { fontSize: '0.78rem', color: 'var(--text-muted)' },
 }
 
 function severityLabel(severity) {

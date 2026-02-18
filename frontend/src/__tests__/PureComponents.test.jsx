@@ -1,5 +1,6 @@
 import React from 'react'
 import { render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 
 import AlertBar from '../components/AlertBar'
 import ErrorBoundary from '../components/ErrorBoundary'
@@ -39,17 +40,24 @@ describe('AlertBar', () => {
 })
 
 describe('Header', () => {
-  it('shows Loading... when lastUpdated is null', () => {
-    render(<Header lastUpdated={null} />)
-    expect(screen.getByText('Loading...')).toBeInTheDocument()
+  it('renders branding and navigation links', () => {
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <Header />
+      </MemoryRouter>,
+    )
+    expect(screen.getByText(/Tracker/)).toBeInTheDocument()
+    expect(screen.getByText('Dashboard')).toBeInTheDocument()
+    expect(screen.getByText('Genomics')).toBeInTheDocument()
   })
 
-  it('shows formatted timestamp for valid ISO input', () => {
-    const iso = '2025-01-02T03:04:05.000Z'
-    const expected = `Last updated: ${new Date(iso).toLocaleString()}`
-
-    render(<Header lastUpdated={iso} />)
-    expect(screen.getByText(expected)).toBeInTheDocument()
+  it('shows live indicator', () => {
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <Header />
+      </MemoryRouter>,
+    )
+    expect(screen.getByText('Live')).toBeInTheDocument()
   })
 })
 

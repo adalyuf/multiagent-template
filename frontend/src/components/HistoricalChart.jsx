@@ -2,6 +2,7 @@ import React, { useRef, useEffect } from 'react'
 import * as d3 from 'd3'
 import { seasonColors } from '../utils/colors'
 import { parseSeason } from '../utils/seasons'
+import { SkeletonChart } from './Skeleton'
 
 export default function HistoricalChart({ data, country = '', forecast = null, forecastUnavailable = false }) {
   const svgRef = useRef()
@@ -17,7 +18,7 @@ export default function HistoricalChart({ data, country = '', forecast = null, f
     svg.selectAll('*').remove()
     svg.attr('viewBox', `0 0 ${width} ${height}`)
 
-    // Clip path for forecast CI band — prevents wide CI from drawing outside chart area
+    // Clip path for forecast CI band
     svg.append('defs').append('clipPath')
       .attr('id', 'chart-area-clip')
       .append('rect')
@@ -32,7 +33,7 @@ export default function HistoricalChart({ data, country = '', forecast = null, f
 
     const xExtent = [0, 52]
 
-    // Compute forecast points in week-offset space for yMax calculation
+    // Forecast points
     const fcastPoints = forecast
       ? (forecast.forecast || []).map(d => ({
           weekOffset: parseSeason(d.date).weekOffset,
@@ -42,9 +43,6 @@ export default function HistoricalChart({ data, country = '', forecast = null, f
         }))
       : []
 
-    // Y-axis is driven by observed data + forecast mean, not CI upper bounds.
-    // CI band is clipped to the chart area so it remains visible without
-    // compressing the historical season lines when CI is wide.
     const yMax = Math.max(
       d3.max(data, d => d.cases) || 1,
       d3.max(fcastPoints, d => d.forecast) || 0,
@@ -59,12 +57,14 @@ export default function HistoricalChart({ data, country = '', forecast = null, f
     svg.append('g')
       .attr('transform', `translate(0,${height - margin.bottom})`)
       .call(d3.axisBottom(x).ticks(12).tickFormat(d => `W${d}`))
-      .attr('color', '#666')
+      .style('color', '#4a4f62')
+      .selectAll('text').style('font-family', 'var(--font-mono)').style('font-size', '0.6rem')
 
     svg.append('g')
       .attr('transform', `translate(${margin.left},0)`)
       .call(d3.axisLeft(y).ticks(5).tickFormat(d3.format('.2s')))
-      .attr('color', '#666')
+      .style('color', '#4a4f62')
+      .selectAll('text').style('font-family', 'var(--font-mono)').style('font-size', '0.6rem')
 
     const line = d3.line()
       .x(d => x(d.week_offset))
@@ -92,18 +92,18 @@ export default function HistoricalChart({ data, country = '', forecast = null, f
         .attr('x', width - margin.right + 8)
         .attr('y', margin.top + i * 16)
         .attr('fill', seasonColors(season))
-        .attr('font-size', '0.65rem')
+        .style('font-size', '0.6rem')
+        .style('font-family', 'var(--font-mono)')
         .attr('opacity', isCurrent ? 1 : 0.6)
         .text(season)
     })
 
-    // Forecast series: confidence band + dashed line
+    // Forecast series
     if (fcastPoints.length > 0) {
       const validFcast = fcastPoints.filter(d => d.weekOffset >= xExtent[0] && d.weekOffset <= xExtent[1])
         .sort((a, b) => a.weekOffset - b.weekOffset)
 
       if (validFcast.length > 0) {
-        // Confidence interval band
         const area = d3.area()
           .x(d => x(d.weekOffset))
           .y0(d => y(d.lower))
@@ -113,10 +113,9 @@ export default function HistoricalChart({ data, country = '', forecast = null, f
         svg.append('path')
           .datum(validFcast)
           .attr('d', area)
-          .attr('fill', 'rgba(245, 158, 11, 0.12)')
+          .attr('fill', 'rgba(245, 158, 11, 0.1)')
           .attr('clip-path', 'url(#chart-area-clip)')
 
-        // Forecast dashed line
         const fline = d3.line()
           .x(d => x(d.weekOffset))
           .y(d => y(d.forecast))
@@ -145,12 +144,13 @@ export default function HistoricalChart({ data, country = '', forecast = null, f
           .attr('x', width - margin.right + 26)
           .attr('y', legendY + 8)
           .attr('fill', '#f59e0b')
-          .attr('font-size', '0.65rem')
+          .style('font-size', '0.6rem')
+          .style('font-family', 'var(--font-mono)')
           .text('Forecast')
       }
     }
 
-    // Visual indicator when CI band is clipped at the top of the chart area
+    // CI clip indicator
     if (ciIsClipped) {
       svg.append('line')
         .attr('class', 'ci-clip-indicator')
@@ -168,20 +168,38 @@ export default function HistoricalChart({ data, country = '', forecast = null, f
         .attr('x', width - margin.right - 4)
         .attr('y', margin.top + 10)
         .attr('fill', '#f59e0b')
-        .attr('font-size', '0.6rem')
+        .style('font-size', '0.58rem')
+        .style('font-family', 'var(--font-mono)')
         .attr('text-anchor', 'end')
         .text('\u2191 CI extends beyond chart')
     }
   }, [data, forecast])
 
+  if (!data) {
+    return <SkeletonChart height={260} />
+  }
+
   return (
-    <div style={{ background: '#0d1117', borderRadius: 8, padding: 12, border: '1px solid #2a2a4a' }}>
+    <div className="card fade-in-up stagger-1" style={{ padding: 12 }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 8 }}>
-        <h3 style={{ fontSize: '0.9rem', color: '#ccc', margin: 0 }}>
-          Historical Season Comparison{country ? ` (${country})` : ' (Global)'}
+        <h3 style={{
+          fontSize: '0.82rem',
+          color: 'var(--text-secondary)',
+          margin: 0,
+          fontWeight: 600,
+        }}>
+          Historical Season Comparison
+          <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>
+            {country ? ` (${country})` : ' (Global)'}
+          </span>
         </h3>
         {forecastUnavailable && (
-          <span style={{ fontSize: '0.7rem', color: '#888', fontStyle: 'italic' }}>
+          <span style={{
+            fontSize: '0.65rem',
+            color: 'var(--text-muted)',
+            fontStyle: 'italic',
+            fontFamily: 'var(--font-mono)',
+          }}>
             forecast unavailable
           </span>
         )}

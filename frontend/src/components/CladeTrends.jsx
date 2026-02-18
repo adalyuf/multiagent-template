@@ -15,8 +15,14 @@ export default function CladeTrends({ data }) {
     seriesAccessor={(d) => d.clade}
     title="Clade Trends (1 year)"
     ariaLabel="Stacked area chart showing clade trends over time"
-    headerAction={<Link to="/genomics" style={{ fontSize: '0.75rem', color: '#f59e0b', textDecoration: 'none' }}>
-      View Genomics Dashboard →
+    headerAction={<Link to="/genomics" style={{
+      fontSize: '0.72rem',
+      color: 'var(--accent-cyan)',
+      textDecoration: 'none',
+      fontWeight: 500,
+      transition: 'opacity 0.15s ease',
+    }}>
+      View Genomics Dashboard &rarr;
     </Link>}
   />
 }

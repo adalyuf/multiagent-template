@@ -6,20 +6,23 @@ export const tableStyles = {
   },
   th: {
     textAlign: 'left',
-    padding: '8px 12px',
-    borderBottom: '1px solid #333',
-    color: '#888',
+    padding: '10px 12px',
+    borderBottom: '2px solid var(--border-default, #252a3a)',
+    color: 'var(--text-muted, #555a6e)',
     fontWeight: 600,
+    fontSize: '0.7rem',
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
   },
   td: {
     padding: '8px 12px',
-    borderBottom: '1px solid #1a1a2e',
+    borderBottom: '1px solid var(--border-subtle, #1a1e30)',
   },
 }
 
 export const cardContainerStyle = {
-  background: '#0d1117',
-  borderRadius: 8,
+  background: 'var(--bg-card, #12141e)',
+  borderRadius: 10,
   padding: 16,
-  border: '1px solid #2a2a4a',
+  border: '1px solid var(--border-default, #252a3a)',
 }

@@ -41,12 +41,12 @@ afterEach(() => {
 })
 
 describe('ChoroplethMap', () => {
-  it('renders SVG but no country paths when data is null', async () => {
+  it('renders skeleton loader when data is null', async () => {
     const { ChoroplethMap, mockJson } = await loadComponentWithMockedMap()
 
     const { container } = render(<ChoroplethMap data={null} />)
 
-    expect(screen.getByRole('img', { name: /world choropleth map/i })).toBeInTheDocument()
+    expect(container.querySelector('.skeleton')).toBeInTheDocument()
     expect(container.querySelectorAll('path.country')).toHaveLength(0)
     expect(mockJson).not.toHaveBeenCalled()
   })
@@ -117,7 +117,7 @@ describe('ChoroplethMap', () => {
     expect(onSelectCountry).toHaveBeenCalledWith('')
   })
 
-  it('highlights selected country stroke with #f59e0b', async () => {
+  it('highlights selected country stroke with #22d3ee', async () => {
     const { ChoroplethMap } = await loadComponentWithMockedMap()
 
     const { container } = render(
@@ -136,7 +136,7 @@ describe('ChoroplethMap', () => {
     )
 
     expect(usPath).toBeTruthy()
-    expect(usPath).toHaveAttribute('stroke', '#f59e0b')
+    expect(usPath).toHaveAttribute('stroke', '#22d3ee')
   })
 
   it('renders legend labels 0 and 40+', async () => {
