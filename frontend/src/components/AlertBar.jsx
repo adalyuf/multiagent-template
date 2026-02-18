@@ -23,6 +23,7 @@ const styles = {
     whiteSpace: 'nowrap',
     color: '#fca5a5',
   },
+  severityText: { fontWeight: 600, color: '#fecaca' },
   dot: (severity) => ({
     width: 8,
     height: 8,
@@ -30,6 +31,15 @@ const styles = {
     background: severity === 'high' ? '#ef4444' : '#f59e0b',
   }),
   empty: { fontSize: '0.8rem', color: '#666' },
+}
+
+function severityLabel(severity) {
+  const value = String(severity || '').toLowerCase()
+  if (value === 'high') return 'High'
+  if (value === 'medium') return 'Medium'
+  if (value === 'low') return 'Low'
+  if (value === 'unknown') return 'Unknown'
+  return value ? `${value.charAt(0).toUpperCase()}${value.slice(1)}` : 'Unknown'
 }
 
 export default function AlertBar({ anomalies, loadError }) {
@@ -53,7 +63,10 @@ export default function AlertBar({ anomalies, loadError }) {
     <div style={styles.bar}>
       {anomalies.map((a, i) => (
         <div key={a.id || i} style={styles.chip}>
-          <span style={styles.dot(a.severity)} />
+          <span style={styles.dot(a.severity)} aria-hidden="true" />
+          <span style={styles.severityText}>
+            {severityLabel(a.severity)}:
+          </span>
           {a.message}
         </div>
       ))}

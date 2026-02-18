@@ -81,7 +81,7 @@ export default function ChoroplethMap({ data, selectedCountry = '', onSelectCoun
   return (
     <div style={{ background: '#0d1117', borderRadius: 8, padding: 12, border: '1px solid #2a2a4a' }}>
       <h3 style={{ fontSize: '0.9rem', color: '#ccc', marginBottom: 8 }}>Global Cases (per 100k, last 4 weeks)</h3>
-      <svg ref={svgRef} style={{ width: '100%', height: 'auto' }} />
+      <svg ref={svgRef} style={{ width: '100%', height: 'auto' }} role="img" aria-label="World choropleth map of flu cases per 100k people" />
       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: '#888', marginTop: 4 }}>
         <span>0</span>
         <div style={{ flex: 1, height: 8, margin: '0 8px', background: 'linear-gradient(to right, #ffffcc, #fd8d3c, #e31a1c, #800026)', borderRadius: 4 }} />

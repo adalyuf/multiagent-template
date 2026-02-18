@@ -23,7 +23,7 @@ const styles = {
 export default function Header({ lastUpdated }) {
   return (
     <header style={styles.header}>
-      <svg style={styles.logo} viewBox="0 0 100 100">
+      <svg style={styles.logo} viewBox="0 0 100 100" role="img" aria-label="FluTracker globe logo">
         <circle cx="50" cy="50" r="45" fill="none" stroke="#f59e0b" strokeWidth="3" />
         <ellipse cx="50" cy="50" rx="45" ry="20" fill="none" stroke="#f59e0b" strokeWidth="2" />
         <ellipse cx="50" cy="50" rx="20" ry="45" fill="none" stroke="#f59e0b" strokeWidth="2" />

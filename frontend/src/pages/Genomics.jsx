@@ -28,6 +28,30 @@ export default function Genomics() {
     fontWeight: active ? 600 : 400,
   })
 
+  const onYearGroupKeyDown = (event, current) => {
+    const values = [1, 3, 5, 10]
+    const index = values.indexOf(current)
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+      event.preventDefault()
+      setYears(values[(index + 1) % values.length])
+    } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+      event.preventDefault()
+      setYears(values[(index - 1 + values.length) % values.length])
+    }
+  }
+
+  const onTopNGroupKeyDown = (event, current) => {
+    const values = [4, 6, 8]
+    const index = values.indexOf(current)
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+      event.preventDefault()
+      setTopN(values[(index + 1) % values.length])
+    } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+      event.preventDefault()
+      setTopN(values[(index - 1 + values.length) % values.length])
+    }
+  }
+
   return (
     <div style={{ minHeight: '100vh', background: '#0a0a0f', color: '#e0e0e0' }}>
       {/* Header */}
@@ -45,9 +69,18 @@ export default function Genomics() {
 
       {/* Controls */}
       <div style={{ padding: '16px 24px', display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
-        <div style={{ display: 'flex', gap: 4 }}>
+        <div role="radiogroup" aria-label="Time range in years" style={{ display: 'flex', gap: 4 }}>
           {[1, 3, 5, 10].map(y => (
-            <button key={y} style={btnStyle(years === y)} onClick={() => setYears(y)}>
+            <button
+              key={y}
+              type="button"
+              role="radio"
+              aria-checked={years === y}
+              tabIndex={years === y ? 0 : -1}
+              style={btnStyle(years === y)}
+              onClick={() => setYears(y)}
+              onKeyDown={(e) => onYearGroupKeyDown(e, y)}
+            >
               {y}yr
             </button>
           ))}
@@ -62,9 +95,18 @@ export default function Genomics() {
             <option key={c.country_code} value={c.country_code}>{c.country_code}</option>
           ))}
         </select>
-        <div style={{ display: 'flex', gap: 4 }}>
+        <div role="radiogroup" aria-label="Number of top results" style={{ display: 'flex', gap: 4 }}>
           {[4, 6, 8].map(n => (
-            <button key={n} style={btnStyle(topN === n)} onClick={() => setTopN(n)}>
+            <button
+              key={n}
+              type="button"
+              role="radio"
+              aria-checked={topN === n}
+              tabIndex={topN === n ? 0 : -1}
+              style={btnStyle(topN === n)}
+              onClick={() => setTopN(n)}
+              onKeyDown={(e) => onTopNGroupKeyDown(e, n)}
+            >
               Top {n}
             </button>
           ))}

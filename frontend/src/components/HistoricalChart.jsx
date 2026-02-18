@@ -74,7 +74,7 @@ export default function HistoricalChart({ data, country = '' }) {
       <h3 style={{ fontSize: '0.9rem', color: '#ccc', marginBottom: 8 }}>
         Historical Season Comparison{country ? ` (${country})` : ' (Global)'}
       </h3>
-      <svg ref={svgRef} style={{ width: '100%', height: 'auto' }} />
+      <svg ref={svgRef} style={{ width: '100%', height: 'auto' }} role="img" aria-label="Line chart comparing historical seasonal flu cases" />
     </div>
   )
 }

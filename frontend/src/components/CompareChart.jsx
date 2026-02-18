@@ -72,7 +72,7 @@ export default function CompareChart() {
           {error}
         </p>
       )}
-      <svg ref={svgRef} style={{ width: '100%', height: 'auto' }} />
+      <svg ref={svgRef} style={{ width: '100%', height: 'auto' }} role="img" aria-label="Line chart showing global case trend over time" />
     </div>
   )
 }
