@@ -1,0 +1,43 @@
+name: Cleanup Stale Labels
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  issues: write
+
+jobs:
+  cleanup-stale-labels:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Strip stale workflow labels from referenced issues
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.pull_request.body || '';
+            const regex = /(?:close|closes|fix|fixes|resolve|resolves)\s+#(\d+)/gi;
+            const issueNumbers = new Set();
+            for (const match of body.matchAll(regex)) {
+              issueNumbers.add(Number(match[1]));
+            }
+
+            if (issueNumbers.size === 0) {
+              core.info('No referenced issues found in PR body.');
+              return;
+            }
+
+            const labelsToRemove = ['needs-review', 'needs:changes'];
+            const { owner, repo } = context.repo;
+
+            for (const issueNumber of issueNumbers) {
+              for (const label of labelsToRemove) {
+                try {
+                  await github.rest.issues.removeLabel({ owner, repo, issue_number: issueNumber, name: label });
+                  core.info(`Removed ${label} from issue #${issueNumber}`);
+                } catch (error) {
+                  if (error.status !== 404) throw error;
+                }
+              }
+            }
