@@ -10,7 +10,6 @@ pairs=(
   "run-tests:run-tests"
   "unwind:unwind"
   "work:work"
-  "review-claude-prs:review-codex-prs"
 )
 
 errors=0
