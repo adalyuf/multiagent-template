@@ -41,4 +41,26 @@ describe('HistoricalChart', () => {
     )
     expect(container.querySelector('clipPath')).toBeInTheDocument()
   })
+
+  it('renders the CI clip indicator when CI upper bound exceeds yMax', () => {
+    const { container } = render(
+      <HistoricalChart data={historicalData} forecast={wideCIForecast} />,
+    )
+    // wideCIForecast has upper=10000 which far exceeds yMax (~100)
+    expect(container.querySelector('.ci-clip-indicator')).toBeInTheDocument()
+  })
+
+  it('does not render the CI clip indicator when CI fits within the domain', () => {
+    const fittingCIForecast = {
+      forecast: [
+        { date: '2024-01-07', forecast: 90, lower: 50, upper: 95 },
+        { date: '2024-01-14', forecast: 85, lower: 45, upper: 95 },
+      ],
+    }
+    const { container } = render(
+      <HistoricalChart data={historicalData} forecast={fittingCIForecast} />,
+    )
+    // upper=95 < yMax=100, so no clipping indicator
+    expect(container.querySelector('.ci-clip-indicator')).not.toBeInTheDocument()
+  })
 })

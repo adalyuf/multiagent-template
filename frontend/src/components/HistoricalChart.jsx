@@ -49,6 +49,8 @@ export default function HistoricalChart({ data, country = '', forecast = null, f
       d3.max(data, d => d.cases) || 1,
       d3.max(fcastPoints, d => d.forecast) || 0,
     )
+    const ciUpperMax = d3.max(fcastPoints, d => d.upper) || 0
+    const ciIsClipped = fcastPoints.length > 0 && ciUpperMax > yMax
 
     const x = d3.scaleLinear().domain(xExtent).range([margin.left, width - margin.right])
     const y = d3.scaleLinear().domain([0, yMax]).range([height - margin.bottom, margin.top])
@@ -146,6 +148,29 @@ export default function HistoricalChart({ data, country = '', forecast = null, f
           .attr('font-size', '0.65rem')
           .text('Forecast')
       }
+    }
+
+    // Visual indicator when CI band is clipped at the top of the chart area
+    if (ciIsClipped) {
+      svg.append('line')
+        .attr('class', 'ci-clip-indicator')
+        .attr('x1', margin.left)
+        .attr('x2', width - margin.right)
+        .attr('y1', margin.top)
+        .attr('y2', margin.top)
+        .attr('stroke', '#f59e0b')
+        .attr('stroke-width', 1.5)
+        .attr('stroke-dasharray', '4,4')
+        .attr('opacity', 0.9)
+
+      svg.append('text')
+        .attr('class', 'ci-clip-indicator')
+        .attr('x', width - margin.right - 4)
+        .attr('y', margin.top + 10)
+        .attr('fill', '#f59e0b')
+        .attr('font-size', '0.6rem')
+        .attr('text-anchor', 'end')
+        .text('\u2191 CI extends beyond chart')
     }
   }, [data, forecast])
 
