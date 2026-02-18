@@ -34,21 +34,17 @@ If you need to read a specific file from the PR branch, use:
 - Pick the oldest issue (lowest number) to review first.
 - Read issue details with `gh issue view <number> --json number,title,body,labels`.
 
-3. Find the related PR via the issue timeline.
+3. Find the related PR.
 
-- Look up PRs that reference the issue through the GitHub timeline API:
+- Use the shared helper script, which tries the timeline API and falls back to PR body search:
   ```
-  gh api repos/{owner}/{repo}/issues/<number>/timeline --paginate \
-    --jq '[.[] | select(.event == "cross-referenced")
-               | select(.source.issue.pull_request != null)
-               | select(.source.issue.state == "open")
-               | .source.issue.number] | last'
+  PR=$(bash /workspace/scripts/find-pr-for-issue.sh <number>)
   ```
-- Take the returned PR number and fetch its details:
+- If the script exits non-zero, report that the issue has no PR to review and stop.
+- Fetch PR details:
   ```
   gh pr view <pr-number> --json number,title,headRefName,url
   ```
-- If no open PR is found, report that the issue has no PR to review and stop.
 
 4. Review the PR.
 
