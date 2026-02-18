@@ -1,0 +1,12 @@
+{
+  "name": "flutracker-e2e",
+  "version": "1.0.0",
+  "description": "Playwright E2E tests for FluTracker",
+  "scripts": {
+    "test": "playwright test",
+    "test:report": "playwright test --reporter=html"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.41.0"
+  }
+}
