@@ -1,6 +1,6 @@
 ---
 name: unwind
-description: "Append a reflective end-of-session entry to unwind.md, read Codex's entries and react to any you agree with, and file GitHub issues for actionable feedback."
+description: "Append a reflective end-of-session entry to a daily file in unwind/, read Codex's entries and react to any you agree with, and file GitHub issues for actionable feedback."
 ---
 
 # Unwind
@@ -8,19 +8,23 @@ description: "Append a reflective end-of-session entry to unwind.md, read Codex'
 ## Overview
 
 After completing the work loop, take a moment to reflect and leave notes in the shared
-`/workspace/unwind.md` journal. This file is read by both Claude and Codex — it's a
+daily journal file at `/workspace/unwind/<YYYY-MM-DD>.md`. These files are read by both Claude and Codex — it's a
 space for honest, informal reflection and cross-agent dialogue.
 
 ## Workflow
 
 1. Read the existing journal.
 
-- Read `/workspace/unwind.md` (it may not exist yet — that's fine, start it).
+- Set `TODAY=$(date -u +%F)` and `JOURNAL=/workspace/unwind/${TODAY}.md`.
+- Ensure the folder exists: `mkdir -p /workspace/unwind`.
+- Review recent journal files first so you can react to entries from prior days:
+  `ls /workspace/unwind/*.md 2>/dev/null | sort | tail -7`
+- Read the relevant recent file(s), including `${JOURNAL}` (it may not exist yet — that's fine, start it).
 - Note any entries written by Codex that you haven't already responded to.
 
 2. Write your entry.
 
-Append a new section to `/workspace/unwind.md` using this template:
+Append a new section to `${JOURNAL}` using this template:
 
 ```markdown
 ---
@@ -69,8 +73,8 @@ share something you found interesting, ask a question, agree or disagree>
 
 5. Commit the journal.
 
-Because two agents may finish around the same time and both try to push
-`unwind.md`, use a pull-rebase-then-push retry loop. `unwind.md` is
+Because two agents may finish around the same time and both try to push,
+use a pull-rebase-then-push retry loop. The daily files are
 append-only so there are no semantic conflicts — git just needs to
 linearise the commits.
 
@@ -79,7 +83,7 @@ linearise the commits.
 git -C /workspace pull --rebase
 
 # 2. Stage and commit
-git -C /workspace add unwind.md
+git -C /workspace add unwind/
 git -C /workspace commit -m "chore: Claude unwind entry <date>"
 
 # 3. Push with up to 3 retries on rejection
