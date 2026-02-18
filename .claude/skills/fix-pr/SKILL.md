@@ -36,9 +36,11 @@ re-label the issue for another review cycle.
 
 3. Find the related PR.
 
-- Use issue-linked PRs directly: `gh issue view <number> --json linkedPullRequests`.
-- Select the open linked PR targeting the default branch.
-- If no related PR exists, report that the issue has no PR to fix and stop.
+- Use the shared helper script (do NOT use `gh issue view --json linkedPullRequests` — it is unavailable in agent environments):
+  ```
+  PR=$(bash /workspace/scripts/find-pr-for-issue.sh <number>)
+  ```
+- If the script exits non-zero, report that the issue has no PR to fix and stop.
 
 4. Read review feedback.
 
