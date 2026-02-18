@@ -142,6 +142,12 @@ cd frontend
 npm test
 ```
 
+Check Codex/Claude skill parity:
+
+```bash
+./scripts/check-skill-parity.sh
+```
+
 Build frontend:
 
 ```bash
