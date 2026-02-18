@@ -5,11 +5,9 @@ import Header from '../components/Header'
 import AlertBar from '../components/AlertBar'
 import ChoroplethMap from '../components/ChoroplethMap'
 import HistoricalChart from '../components/HistoricalChart'
-import CompareChart from '../components/CompareChart'
 import CladeTrends from '../components/CladeTrends'
 import SubtypeTrends from '../components/SubtypeTrends'
 import CountryTable from '../components/CountryTable'
-import ForecastChart from '../components/ForecastChart'
 import ErrorBoundary from '../components/ErrorBoundary'
 
 const grid2 = {
@@ -47,7 +45,6 @@ export default function Dashboard() {
   const { data: subtypes, error: subtypesError } = useApi(() => api.subtypes(), [])
   const { data: countries, error: countriesError } = useApi(() => api.countries(), [])
   const { data: anomalies, error: anomaliesError } = useApi(() => api.anomalies(), [])
-  const { data: forecast, error: forecastError } = useApi(() => api.forecast(), [])
   const { data: cladeTrends, error: cladeTrendsError } = useApi(() => api.genomicTrends(), [])
 
   return (
@@ -94,16 +91,6 @@ export default function Dashboard() {
           <ErrorBoundary>
             <HistoricalChart data={historical} country={selectedCountry} />
           </ErrorBoundary>
-        )}
-      </div>
-
-      {/* Compare + Forecast */}
-      <div style={grid2}>
-        <ErrorBoundary><CompareChart /></ErrorBoundary>
-        {forecastError ? (
-          <ErrorCard message="Failed to load forecast data — please refresh." />
-        ) : (
-          <ErrorBoundary><ForecastChart data={forecast} /></ErrorBoundary>
         )}
       </div>
 
