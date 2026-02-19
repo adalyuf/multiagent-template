@@ -5,10 +5,8 @@ Uses an in-memory SQLite database (via aiosqlite) so tests run without
 a real PostgreSQL instance.
 """
 
-import asyncio
 from datetime import date, datetime
 
-import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
@@ -36,13 +34,6 @@ _MODULES_USING_SESSION = [
     "app.services.anomaly",
     "app.services.forecast",
 ]
-
-
-@pytest.fixture(scope="session")
-def event_loop():
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
 
 
 @pytest_asyncio.fixture(autouse=True)
