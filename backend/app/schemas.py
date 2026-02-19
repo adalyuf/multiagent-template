@@ -61,6 +61,8 @@ class ForecastPoint(BaseModel):
     forecast: Optional[float] = None
     lower: Optional[float] = None
     upper: Optional[float] = None
+    gaussian_mean: Optional[float] = None
+    gaussian_stddev: Optional[float] = None
 
 
 class GenomicTrendPoint(BaseModel):

@@ -6,6 +6,8 @@ import { SkeletonChart } from './Skeleton'
 
 export default function HistoricalChart({ data, country = '', forecast = null, forecastUnavailable = false }) {
   const svgRef = useRef()
+  const gaussianBaseline = (forecast?.forecast || [])[0]
+  const hasGaussianBaseline = Number.isFinite(gaussianBaseline?.gaussian_mean) && Number.isFinite(gaussianBaseline?.gaussian_stddev)
 
   useEffect(() => {
     if (!data || data.length === 0) return
@@ -201,6 +203,15 @@ export default function HistoricalChart({ data, country = '', forecast = null, f
             fontFamily: 'var(--font-mono)',
           }}>
             forecast unavailable
+          </span>
+        )}
+        {hasGaussianBaseline && (
+          <span style={{
+            fontSize: '0.65rem',
+            color: 'var(--text-muted)',
+            fontFamily: 'var(--font-mono)',
+          }}>
+            Gaussian baseline mu {gaussianBaseline.gaussian_mean.toFixed(1)} sigma {gaussianBaseline.gaussian_stddev.toFixed(1)}
           </span>
         )}
       </div>

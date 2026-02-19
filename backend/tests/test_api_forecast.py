@@ -51,3 +51,5 @@ async def test_forecast_with_enough_data_points(client, db_session):
     assert len(data["historical"]) == 26
     assert len(data["forecast"]) == 3
     assert all(point["forecast"] is not None for point in data["forecast"])
+    assert all(point["gaussian_mean"] is not None for point in data["forecast"])
+    assert all(point["gaussian_stddev"] is not None for point in data["forecast"])

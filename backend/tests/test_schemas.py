@@ -42,6 +42,8 @@ def test_forecast_point_optional_fields():
     p = ForecastPoint(date="2025-06-01")
     assert p.actual is None
     assert p.forecast is None
+    assert p.gaussian_mean is None
+    assert p.gaussian_stddev is None
 
 
 def test_genomic_summary_defaults():

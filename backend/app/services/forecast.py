@@ -32,6 +32,9 @@ async def generate_forecast(country_code: str = None, weeks_ahead: int = 8):
 
         dates = [r.time for r in rows]
         values = [float(r.total) for r in rows]
+        gaussian_window = values[-12:] if len(values) >= 12 else values
+        gaussian_mean = float(np.mean(gaussian_window)) if gaussian_window else 0.0
+        gaussian_stddev = float(np.std(gaussian_window)) if gaussian_window else 0.0
 
         # Simple exponential smoothing
         alpha = settings.FORECAST_ALPHA
@@ -61,13 +64,23 @@ async def generate_forecast(country_code: str = None, weeks_ahead: int = 8):
         for w in range(1, weeks_ahead + 1):
             fd = last_date + timedelta(weeks=w)
             width = settings.FORECAST_CI_MULTIPLIER * std_residual * (w ** 0.5)
-            forecast.append({
+            point = {
                 "date": fd.isoformat(),
                 "actual": None,
                 "forecast": round(last_val, 1),
                 "lower": round(max(0, last_val - width), 1),
                 "upper": round(last_val + width, 1),
-            })
+                "gaussian_mean": round(gaussian_mean, 1),
+                "gaussian_stddev": round(gaussian_stddev, 1),
+            }
+            logger.debug(
+                "Forecast week=%s deterministic=%.1f gaussian_mean=%.1f gaussian_stddev=%.1f",
+                w,
+                point["forecast"],
+                point["gaussian_mean"],
+                point["gaussian_stddev"],
+            )
+            forecast.append(point)
 
         return {"historical": historical, "forecast": forecast}
     except Exception:

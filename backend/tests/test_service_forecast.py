@@ -77,6 +77,9 @@ async def test_generate_forecast_exponential_smoothing_output(db_session):
     first = out["forecast"][0]
     assert first["forecast"] == round(smoothed, 1)
     assert first["lower"] <= first["forecast"] <= first["upper"]
+    gaussian_window = values[-12:]
+    assert first["gaussian_mean"] == round(float(np.mean(gaussian_window)), 1)
+    assert first["gaussian_stddev"] == round(float(np.std(gaussian_window)), 1)
 
     # Verify forecast dates are sequential weeks after last data point
     last_data_date = start + timedelta(weeks=len(values) - 1)
@@ -131,3 +134,6 @@ async def test_generate_forecast_uses_configurable_parameters(db_session):
     assert first["forecast"] == round(smoothed, 1)
     assert first["lower"] == round(max(0, smoothed - expected_width), 1)
     assert first["upper"] == round(smoothed + expected_width, 1)
+    gaussian_window = values[-10:]
+    assert first["gaussian_mean"] == round(float(np.mean(gaussian_window)), 1)
+    assert first["gaussian_stddev"] == round(float(np.std(gaussian_window)), 1)

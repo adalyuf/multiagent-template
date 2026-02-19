@@ -63,4 +63,16 @@ describe('HistoricalChart', () => {
     // upper=95 < yMax=100, so no clipping indicator
     expect(container.querySelector('.ci-clip-indicator')).not.toBeInTheDocument()
   })
+
+  it('shows gaussian baseline summary when gaussian fields are present', () => {
+    const gaussianForecast = {
+      forecast: [
+        { date: '2024-01-07', forecast: 90, lower: 50, upper: 95, gaussian_mean: 87.4, gaussian_stddev: 9.2 },
+      ],
+    }
+    const { getByText } = render(
+      <HistoricalChart data={historicalData} forecast={gaussianForecast} />,
+    )
+    expect(getByText(/Gaussian baseline mu 87.4 sigma 9.2/i)).toBeInTheDocument()
+  })
 })
