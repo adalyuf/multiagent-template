@@ -103,9 +103,15 @@ RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/
   -a "export PROMPT_COMMAND='history -a' && export HISTFILE=/commandhistory/.bash_history" \
   -x
 
-# Install Claude
+# Install AI Agents and tooling
 RUN npm install -g @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}
 RUN npm i -g @openai/codex
-RUN npm install -g cline
 RUN npm install -g @railway/cli
+
+# Cline currently has issues authenticating in the redirect
+RUN npm install -g cline
+# Gemini takes 6 minutes for a 30s query, currently unusable
 RUN npm install -g @google/gemini-cli
+# Opencode hits a lot of rate limits, kilocode seems like a fork of opencode and so far has had faster and more reliable API access
+RUN npm install -g opencode-ai
+RUN npm install -g @kilocode/cli
