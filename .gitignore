@@ -11,3 +11,4 @@ htmlcov/
 frontend/coverage/
 .worktrees/
 *.db
+.ruff_cache/
