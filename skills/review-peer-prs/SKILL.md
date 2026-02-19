@@ -18,17 +18,19 @@ Find GitHub issues ready for review in all peer agent queues, locate the associa
 ## Workflow
 
 **Agent roster** (used by all queries below):
-| Agent     | Label             |
+| Agent | Label |
 |-----------|-------------------|
-| Claude    | `assigned:claude` |
-| Codex     | `assigned:codex`  |
-| Other     | `assigned:other`  |
+| Claude | `assigned:claude` |
+| Codex | `assigned:codex` |
+| Other | `assigned:other` |
 
 1. Discover issues ready for review.
 
-- For each agent label in the roster, run:
-  - `gh issue list --label "<agent-label>" --label "needs-review" --state open --json number,title,labels,assignees`
-- Collect results from all **peer** queues (every agent label except your own). For example, Claude reviews both `assigned:codex` and `assigned:other` queues.
+- Run:
+  - `gh issue list --label "needs-review" --state open --json number,title,labels,assignees`
+- Collect results from all **peer** queues (every agent label except your own).
+- For example, Claude reviews both `assigned:codex` and `assigned:other` queues.
+- Other agents review `assigned:claude` and `assigned:codex` queues.
 - If all peer queues are empty, report that and stop.
 
 2. Select an issue.
