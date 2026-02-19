@@ -158,6 +158,23 @@ COUNTRY_CODE_MAP = {
     "SAINT VINCENT AND THE GRENADINES": "VC",
     "HAWAII": "US",
     "ALASKA": "US",
+    "TANZANIA": "TZ",
+    "UGANDA": "UG",
+    "RWANDA": "RW",
+    "TUVALU": "TV",
+    "PANAMA": "PA",
+    "BOLIVIA": "BO",
+    "HONDURAS": "HN",
+    "FIJI": "FJ",
+    "MOZAMBIQUE": "MZ",
+    "MALI": "ML",
+    "CONGO": "CG",
+    "DEMOCRATIC REPUBLIC OF THE CONGO": "CD",
+    "TAJIKISTAN": "TJ",
+    "ECUADOR": "EC",
+    "GUATEMALA": "GT",
+    "AFGHANISTAN": "AF",
+    "ETHIOPIA": "ET",
 }
 
 
