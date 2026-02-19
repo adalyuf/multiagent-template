@@ -16,6 +16,13 @@ Use `gh` to submit the issue and return the URL.
 
 ## Workflow
 
+**Agent roster** (used by all queries below):
+| Agent     | Label             |
+|-----------|-------------------|
+| Claude    | `assigned:claude` |
+| Codex     | `assigned:codex`  |
+| Other     | `assigned:other`  |
+
 1. Understand the request.
 
 - Read the user's description carefully.
@@ -26,15 +33,15 @@ Use `gh` to submit the issue and return the URL.
 - Bug: `bug`
 - Feature request: `enhancement`
 - Balance workload between agents by counting only *actionable* open issues
-  (exclude issues already in the review cycle via `needs-review` or `needs:changes`):
+  (exclude issues already in the review cycle via `needs-review` or `needs:changes`).
+  For each agent label in the roster, run:
   ```
-  gh issue list --label assigned:claude --state open --json number,labels \
-    | jq '[.[] | select(.labels | map(.name) | (contains(["needs-review"]) or contains(["needs:changes"])) | not)] | length'
-  gh issue list --label assigned:codex --state open --json number,labels \
+  gh issue list --label <agent-label> --state open --json number,labels \
     | jq '[.[] | select(.labels | map(.name) | (contains(["needs-review"]) or contains(["needs:changes"])) | not)] | length'
   ```
+  For example, run the above for `assigned:claude`, `assigned:codex`, and `assigned:other`.
   Assign to whichever agent has fewer actionable open issues.
-  Break ties by assigning to `assigned:codex`.
+  Break ties by assigning in priority order: `assigned:other`, `assigned:codex`, `assigned:claude`.
 - Add any other relevant labels that already exist in the repo (check with `gh label list`).
 
 3. Draft the issue.
@@ -77,7 +84,7 @@ Feature template:
   cat > /tmp/gh-issue-body.md << 'EOF'
   <body>
   EOF
-  gh issue create --title "<title>" --body-file /tmp/gh-issue-body.md --label "<label>,<assigned:claude|assigned:codex>"
+  gh issue create --title "<title>" --body-file /tmp/gh-issue-body.md --label "<label>,<assigned:claude|assigned:codex|assigned:other>"
   ```
 
 5. Report back.

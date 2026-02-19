@@ -19,15 +19,19 @@ re-label the issue for another review cycle.
 
 ## Workflow
 
+**Agent roster** (used by all queries below):
+| Agent     | Label             |
+|-----------|-------------------|
+| Claude    | `assigned:claude` |
+| Codex     | `assigned:codex`  |
+| Other     | `assigned:other`  |
+
 1. Discover issues needing changes.
 
-- Run both queries:
-  - `gh issue list --label "assigned:codex" --label "needs:changes" --state open --json number,title,labels,assignees`
-  - `gh issue list --label "assigned:claude" --label "needs:changes" --state open --json number,title,labels,assignees`
-- Use the queue that matches your agent:
-  - If you are Codex, use `assigned:codex` results.
-  - If you are Claude, use `assigned:claude` results.
-- If your agent's queue is empty, report that and stop (do not take the other agent's queue unless explicitly asked).
+- For each agent label in the roster, run:
+  - `gh issue list --label "<agent-label>" --label "needs:changes" --state open --json number,title,labels,assignees`
+- Use **your** agent label's results.
+- If your agent's queue is empty, report that and stop (do not take another agent's queue unless explicitly asked).
 
 2. Select an issue.
 

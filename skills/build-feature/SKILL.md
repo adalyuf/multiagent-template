@@ -1,6 +1,6 @@
 ---
 name: build-feature
-description: "Execute the GitHub workflow for assigned issues: discover both assignee queues, pick an actionable issue from the current-agent queue, create a task worktree + branch, implement and verify a fix, open a pull request, and set the needs-review label. Use when asked to take an assigned issue through implementation and PR handoff with gh CLI."
+description: "Execute the GitHub workflow for assigned issues: discover all agent queues, pick an actionable issue from the current-agent queue, create a task worktree + branch, implement and verify a fix, open a pull request, and set the needs-review label. Use when asked to take an assigned issue through implementation and PR handoff with gh CLI."
 ---
 
 # GitHub Assigned Issue PR
@@ -24,14 +24,18 @@ Prioritize correctness, minimal diffs, and explicit verification.
 
 ## Workflow
 
+**Agent roster** (used by all queries below):
+| Agent     | Label             |
+|-----------|-------------------|
+| Claude    | `assigned:claude` |
+| Codex     | `assigned:codex`  |
+| Other     | `assigned:other`  |
+
 1. Discover assigned issues.
 
-- Run both:
-  - `gh issue list --label assigned:codex --state open`
-  - `gh issue list --label assigned:claude --state open`
-- Use your agent queue:
-  - Codex uses `assigned:codex`.
-  - Claude uses `assigned:claude`.
+- For each agent label in the roster, run:
+  - `gh issue list --label <agent-label> --state open`
+- Use **your** agent label's results.
 - If your queue is empty, report that and stop.
 
 2. Select the issue.
@@ -39,8 +43,7 @@ Prioritize correctness, minimal diffs, and explicit verification.
 - Prefer issue labels or severity guidance if present.
 - Read issue details with `gh issue view <number>`.
 - Ensure the issue has your agent label:
-  - Codex: `gh issue edit <number> --add-label assigned:codex`
-  - Claude: `gh issue edit <number> --add-label assigned:claude`
+  - `gh issue edit <number> --add-label <your-agent-label>`
 
 3. Create task worktree and branch.
 

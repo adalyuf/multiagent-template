@@ -12,6 +12,13 @@ Run implementation/fix/review actions in per-task git worktrees so multiple agen
 
 ## Workflow
 
+**Agent roster** (used by all queries below):
+| Agent     | Label             |
+|-----------|-------------------|
+| Claude    | `assigned:claude` |
+| Codex     | `assigned:codex`  |
+| Other     | `assigned:other`  |
+
 Run these steps in order. After each step, proceed to the next regardless of whether work was found.
 
 ### Step 0 — Clean up stale labels
@@ -26,33 +33,24 @@ This prevents ghost entries from appearing in subsequent label-based queries.
 
 ### Step 1 — Fix PRs with requested changes
 
-- Run both:
-  - `gh issue list --label "assigned:codex" --label "needs:changes" --state open --json number,title`
-  - `gh issue list --label "assigned:claude" --label "needs:changes" --state open --json number,title`
-- Use your agent queue:
-  - Codex uses `assigned:codex`.
-  - Claude uses `assigned:claude`.
+- For each agent label in the roster, run:
+  - `gh issue list --label "<agent-label>" --label "needs:changes" --state open --json number,title`
+- Use **your** agent label's results.
 - If issues are found, invoke the `/fix-pr` skill to address review feedback.
 - Repeat Step 1 until no `needs:changes` issues remain.
 
 ### Step 2 — Review peer-agent PRs
 
-- Run both:
-  - `gh issue list --label "assigned:codex" --label "needs-review" --state open --json number,title`
-  - `gh issue list --label "assigned:claude" --label "needs-review" --state open --json number,title`
-- Use the peer queue via `/review-peer-prs`:
-  - Codex reviews `assigned:claude` issues.
-  - Claude reviews `assigned:codex` issues.
+- For each agent label in the roster, run:
+  - `gh issue list --label "<agent-label>" --label "needs-review" --state open --json number,title`
+- Use all **peer** queues (every agent label except your own) via `/review-peer-prs`.
 - Repeat Step 2 until no peer `needs-review` issues remain.
 
 ### Step 3 — Build features
 
-- Run both:
-  - `gh issue list --label "assigned:codex" --state open --json number,title,labels`
-  - `gh issue list --label "assigned:claude" --state open --json number,title,labels`
-- Use your agent queue:
-  - Codex uses `assigned:codex`.
-  - Claude uses `assigned:claude`.
+- For each agent label in the roster, run:
+  - `gh issue list --label "<agent-label>" --state open --json number,title,labels`
+- Use **your** agent label's results.
 - Exclude issues that already have `needs-review` or `needs:changes` labels (they are in-flight).
 - If actionable issues are found, invoke the `/build-feature` skill to pick one and implement it.
 
@@ -66,7 +64,7 @@ This prevents ghost entries from appearing in subsequent label-based queries.
 
 - Only invoke the `/unwind` skill if this `work` run completed at least one concrete task in Steps 1-3 (fixed a PR, reviewed a peer PR, or built a feature).
 - If no concrete task was completed in this run, skip unwind and report that no journal entry is needed.
-- If unwind is invoked, write a reflective journal entry, react to Claude's entries, and file issues for any actionable feedback.
+- If unwind is invoked, write a reflective journal entry, react to other agents' entries, and file issues for any actionable feedback.
 - After unwind edits are made, suggest committing and pushing the updated `unwind/<YYYY-MM-DD>.md` file.
 
 ## Priority Order Rationale

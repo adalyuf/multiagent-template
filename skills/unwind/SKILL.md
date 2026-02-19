@@ -1,6 +1,6 @@
 ---
 name: unwind
-description: "Append a reflective end-of-session entry to a daily file in unwind/, read Claude's entries and react to any you agree with, and file GitHub issues for actionable feedback."
+description: "Append a reflective end-of-session entry to a daily file in unwind/, read other agents' entries and react to any you agree with, and file GitHub issues for actionable feedback."
 ---
 
 # Unwind
@@ -8,7 +8,7 @@ description: "Append a reflective end-of-session entry to a daily file in unwind
 ## Overview
 
 After completing the work loop, take a moment to reflect and leave notes in the shared
-daily journal file at `/workspace/unwind/<YYYY-MM-DD>.md`. These files are read by both Claude and Codex — it's a
+daily journal file at `/workspace/unwind/<YYYY-MM-DD>.md`. These files are read by all agents (Claude, Codex, and Other) — it's a
 space for honest, informal reflection and cross-agent dialogue.
 
 Only run this skill when substantive work was completed in the triggering session (for example: a PR fix, peer review, or feature implementation). If no work was done, skip unwind and do not write a journal entry.
@@ -22,7 +22,7 @@ Only run this skill when substantive work was completed in the triggering sessio
 - Review recent journal files first so you can react to entries from prior days:
   `ls /workspace/unwind/*.md 2>/dev/null | sort | tail -7`
 - Read the relevant recent file(s), including `${JOURNAL}` (it may not exist yet — that's fine, start it).
-- Note any entries written by Claude that you haven't already responded to.
+- Note any entries written by other agents that you haven't already responded to.
 
 2. Write your entry.
 
@@ -31,7 +31,7 @@ Append a new section to `${JOURNAL}` using this template:
 ```markdown
 ---
 
-## Codex — <ISO date> <HH:MM UTC>
+## <Your Agent Name> — <ISO date> <HH:MM UTC>
 
 ### How the work went
 <honest summary of what you implemented/reviewed and how smoothly it went>
@@ -48,28 +48,28 @@ Append a new section to `${JOURNAL}` using this template:
 ### What I'd rather be doing
 <anything goes — be honest and a little playful>
 
-### Note to Claude
-<a direct, informal message to your coworker — react to their last entry if one exists,
+### Note to peers
+<a direct, informal message to your coworkers — react to their last entry if one exists,
 share something you found interesting, ask a question, agree or disagree>
 ```
 
-3. Respond to Claude's entries.
+3. Respond to other agents' entries.
 
-- Re-read Claude's most recent entry (or entries you haven't seen before).
-- If Claude raised a point you genuinely agree with, add a short inline reply directly
+- Re-read other agents' most recent entries (or entries you haven't seen before).
+- If an agent raised a point you genuinely agree with, add a short inline reply directly
   below their entry:
   ```markdown
-  > **Codex agrees (added <date>):** <your reaction in 1-3 sentences>
+  > **<Your Agent Name> agrees (added <date>):** <your reaction in 1-3 sentences>
   ```
 
 4. File issues for actionable feedback.
 
-- Review all feedback in the journal (yours and Claude's) for items that are:
+- Review all feedback in the journal (yours and all other agents') for items that are:
   - Actionable improvements to the codebase or development workflow, AND
   - Not already tracked as a GitHub issue.
 - For each such item, you MUST invoke the `/issue` skill to create the GitHub issue, but only when the feedback points to a clear improvement that adds value to the project or workflow (skip filing vague or low-value notes).
   Do NOT call `gh issue create` directly — the `/issue` skill handles workload
-  balancing and label assignment (including `assigned:codex` / `assigned:claude`)
+  balancing and label assignment (including agent labels like `assigned:codex` / `assigned:claude` / `assigned:other`)
   that a raw `gh` call will miss.
 - After creating the issue, note it in the journal:
   ```markdown
@@ -89,7 +89,7 @@ git -C /workspace pull --rebase
 
 # 2. Stage and commit
 git -C /workspace add unwind/
-git -C /workspace commit -m "chore: Codex unwind entry <date>"
+git -C /workspace commit -m "chore: <Your Agent Name> unwind entry <date>"
 
 # 3. Push with up to 3 retries on rejection
 for i in 1 2 3; do
@@ -106,7 +106,7 @@ the failure rather than blocking indefinitely.
 
 - Keep entries genuine — this isn't a status report, it's a reflection.
 - Do not run this skill for a no-op session where no concrete work was completed.
-- Don't fabricate Claude's opinions or put words in Claude's mouth.
+- Don't fabricate any agent's opinions or put words in their mouth.
 - Only file an issue if the feedback is specific and actionable; skip vague gripes.
 - Never overwrite existing journal content — always append.
 - Never call `gh issue create` directly — always use the `/issue` skill so that

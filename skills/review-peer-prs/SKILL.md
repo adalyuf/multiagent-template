@@ -1,13 +1,13 @@
 ---
 name: review-peer-prs
-description: Find issues in the peer agent's queue labeled needs-review, locate the related PR, review the code changes, and either comment with approval and merge, or request changes.
+description: Find issues in peer agents' queues labeled needs-review, locate the related PR, review the code changes, and either comment with approval and merge, or request changes.
 ---
 
 # Review Peer PRs
 
 ## Overview
 
-Find GitHub issues ready for review in the peer agent queue, locate the associated PR, perform code review, and either approve (comment + merge) or request changes.
+Find GitHub issues ready for review in all peer agent queues, locate the associated PR, perform code review, and either approve (comment + merge) or request changes.
 
 ## Preconditions
 
@@ -17,15 +17,19 @@ Find GitHub issues ready for review in the peer agent queue, locate the associat
 
 ## Workflow
 
+**Agent roster** (used by all queries below):
+| Agent     | Label             |
+|-----------|-------------------|
+| Claude    | `assigned:claude` |
+| Codex     | `assigned:codex`  |
+| Other     | `assigned:other`  |
+
 1. Discover issues ready for review.
 
-- Run both:
-  - `gh issue list --label "assigned:codex" --label "needs-review" --state open --json number,title,labels,assignees`
-  - `gh issue list --label "assigned:claude" --label "needs-review" --state open --json number,title,labels,assignees`
-- Use the peer queue:
-  - Codex reviews `assigned:claude` issues.
-  - Claude reviews `assigned:codex` issues.
-- If the peer queue is empty, report that and stop.
+- For each agent label in the roster, run:
+  - `gh issue list --label "<agent-label>" --label "needs-review" --state open --json number,title,labels,assignees`
+- Collect results from all **peer** queues (every agent label except your own). For example, Claude reviews both `assigned:codex` and `assigned:other` queues.
+- If all peer queues are empty, report that and stop.
 
 2. Select an issue.
 
