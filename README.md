@@ -1,101 +1,199 @@
-# FluTracker
+# Full-Stack App Template
 
-FluTracker is a global influenza surveillance dashboard with a FastAPI backend, React frontend, and PostgreSQL database.
+A production-ready template for building full-stack applications with **FastAPI**, **React**, and **PostgreSQL** — bundled with a complete AI agent development workflow.
 
-It combines:
-- WHO FluNet case data (`https://xmart-api-public.who.int/FLUMART/VIW_FNT`)
-- Nextstrain influenza genomic data (`/flu/seasonal/h3n2/ha/12y` dataset)
+Clone this repo, run `docker compose up`, and you have a working app. Run the clean-slate script to remove the reference code and start building your own.
 
-The UI provides an at-a-glance dashboard for case trends, maps, subtype/clade trends, alerts, and country-level summaries.
+## What's included
 
-## Tech stack
+| Layer | Technology | Details |
+|-------|-----------|---------|
+| Backend | FastAPI + SQLAlchemy (async) | Health endpoint, CORS, async PostgreSQL |
+| Frontend | React 18 + Vite | Dark-themed UI, hot reload, proxy to backend |
+| Database | PostgreSQL 16 | Docker volume, health checks |
+| Testing | pytest + Vitest + Playwright | Unit, integration, and E2E with coverage |
+| CI/CD | GitHub Actions | Three-job pipeline (backend, frontend, E2E) |
+| AI Tooling | Skills + multi-agent workflows | Claude Code, Gemini CLI, Codex support |
+| Dev Environment | Dev Container + VS Code settings | One-click cloud/local dev setup |
 
-- Backend: FastAPI, SQLAlchemy (async), APScheduler
-- Frontend: React + Vite
-- Database: PostgreSQL 16
-- Infra: Docker Compose (local), Railway config present (`railway.toml`)
-
-## Architecture
-
-High-level flow:
-1. Backend startup initializes tables and background scheduler jobs.
-2. Ingestion jobs pull FluNet and Nextstrain data into PostgreSQL.
-3. API routers expose aggregated datasets (`/api/cases/*`, `/api/genomics/*`, `/api/anomalies`, `/api/forecast`).
-4. Frontend consumes `/api` and renders dashboard + genomics views.
-
-Key backend modules:
-- `backend/app/main.py`: FastAPI app, CORS, rate limiting, router registration
-- `backend/app/scheduler.py`: recurring ingestion, anomaly detection, daily rebuild
-- `backend/app/services/flunet.py`: FluNet ingestion/parsing/upsert
-- `backend/app/services/nextstrain.py`: Nextstrain ingestion/parsing/upsert
-
-Key frontend modules:
-- `frontend/src/App.jsx`: route setup (`/`, `/genomics`)
-- `frontend/src/pages/Dashboard.jsx`: primary dashboard
-- `frontend/src/pages/Genomics.jsx`: genomics dashboard
-- `frontend/src/api.js`: API base URL resolution (`VITE_API_URL` or same-origin `/api`)
-
-## Run locally (Docker Compose)
-
-### 1. Configure environment
+## Quick start
 
 ```bash
+# 1. Clone and configure
+git clone <this-repo> my-app && cd my-app
 cp .env.example .env
+
+# 2. Start everything
+docker compose up --build
+
+# 3. Open in browser
+#    App:    http://localhost
+#    API:    http://localhost:8000/api/health
 ```
 
-Default `.env.example` values are already suitable for local Docker Compose.
+## Clean slate: start your own project
 
-### 2. Build and start
+The repo ships with a FluTracker reference application so you can see the full stack working end-to-end. When you're ready to build your own app, run:
 
 ```bash
+bash scripts/clean-slate.sh
+```
+
+This will:
+- Remove all FluTracker-specific code (routers, services, components, pages, tests)
+- Create minimal skeleton files so `docker compose up` works immediately
+- Update dependencies (remove unused packages like D3, APScheduler, etc.)
+- Preserve all AI agent infrastructure, CI pipelines, and dev tooling
+- Write a `.clean-slate` marker to prevent accidental re-execution
+
+After running the script:
+
+```bash
+cd frontend && npm install && cd ..
 docker compose up --build
 ```
 
-Services:
-- Frontend: `http://localhost` (port 80)
-- Backend API: `http://localhost:8000`
-- Postgres: `localhost:5432`
+You'll see a minimal app with "Your App Name" and a health check indicator.
 
-### 3. Stop
+## Project structure (after clean slate)
 
-```bash
-docker compose down
+```
+.
+├── backend/
+│   ├── app/
+│   │   ├── main.py          # FastAPI app — add your routers here
+│   │   ├── models.py        # SQLAlchemy models — add your tables here
+│   │   ├── config.py        # Settings (DATABASE_URL)
+│   │   └── database.py      # Async engine + session factory
+│   ├── tests/
+│   │   ├── conftest.py       # In-memory SQLite test fixtures
+│   │   └── test_api_health.py
+│   ├── requirements.txt
+│   ├── pytest.ini
+│   └── Dockerfile
+├── frontend/
+│   ├── src/
+│   │   ├── App.jsx           # Main component — build your UI here
+│   │   ├── main.jsx          # Entry point
+│   │   ├── test/setup.js     # Test setup
+│   │   └── __tests__/
+│   │       └── App.test.jsx
+│   ├── e2e/
+│   │   └── app.spec.js       # Playwright E2E test
+│   ├── index.html
+│   ├── package.json
+│   ├── vite.config.js
+│   ├── playwright.config.js
+│   └── Dockerfile
+├── skills/                    # AI agent skill definitions
+├── scripts/                   # Utility scripts
+├── .claude/                   # Claude Code configuration
+├── .gemini/                   # Gemini CLI configuration
+├── .github/workflows/         # CI pipelines
+├── .devcontainer/             # Dev container setup
+├── docker-compose.yml
+├── AGENTS.md                  # Multi-agent workflow docs
+└── GEMINI.md                  # Gemini CLI context
 ```
 
-To also remove DB volume data:
+## Building your app
 
-```bash
-docker compose down -v
+### Add a backend model
+
+Edit `backend/app/models.py`:
+
+```python
+from sqlalchemy import Column, Integer, String
+from app.models import Base
+
+class Item(Base):
+    __tablename__ = "items"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(200), nullable=False)
 ```
 
-## Run locally (manual, without Docker)
+Tables are created automatically on startup via the lifespan handler in `main.py`.
 
-Prereqs:
+### Add an API router
+
+Create `backend/app/routers/items.py`:
+
+```python
+from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.database import get_session
+
+router = APIRouter()
+
+@router.get("/api/items")
+async def list_items(session: AsyncSession = Depends(get_session)):
+    # Your query here
+    return []
+```
+
+Register it in `backend/app/main.py`:
+
+```python
+from app.routers import items
+app.include_router(items.router)
+```
+
+### Add React components
+
+Create components in `frontend/src/components/` and import them in `App.jsx`. The Vite dev server proxies `/api` requests to the backend automatically.
+
+## Running tests
+
+### Backend tests
+
+```bash
+cd backend
+pip install -r requirements.txt
+pytest
+```
+
+Tests use an in-memory SQLite database — no PostgreSQL required.
+
+### Frontend unit tests
+
+```bash
+cd frontend
+npm install
+npm test
+```
+
+### E2E tests
+
+```bash
+# Start the full stack first
+docker compose up -d --build
+
+# Run Playwright from the frontend directory
+cd frontend
+npx playwright test
+```
+
+All E2E specs live in `frontend/e2e/`. The `frontend/playwright.config.js` controls test discovery and is what CI uses.
+
+## Run locally (without Docker)
+
+### Prerequisites
 - Python 3.12+
 - Node 20+
-- PostgreSQL 16 running locally
+- PostgreSQL 16
 
-### 1. Database setup
-
-Create a local database and set `DATABASE_URL` (example):
-
-```bash
-export DATABASE_URL=postgresql://flutracker:flutracker@localhost:5432/flutracker
-```
-
-### 2. Backend
+### Backend
 
 ```bash
 cd backend
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+export DATABASE_URL=postgresql://appuser:apppass@localhost:5432/appdb
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-### 3. Frontend
-
-In another terminal:
+### Frontend
 
 ```bash
 cd frontend
@@ -106,68 +204,80 @@ npm run dev -- --host 0.0.0.0 --port 5173
 
 Open `http://localhost:5173`.
 
-## Multi-agent development workflow
+## AI agent workflow infrastructure
 
-This repo uses skill-driven agent workflows (see `skills/` and `AGENTS.md`) with label-based coordination. Supported agents: Codex (`AGENTS.md`), Claude Code (`.claude/skills/` symlinks), and Gemini CLI (`GEMINI.md` + `.gemini/settings.json`).
+This template includes a complete multi-agent development workflow. See `AGENTS.md` for full details.
 
-Common labels:
-- `assigned:codex` / `assigned:claude`: ownership
-- `needs-review`: ready for peer agent review
-- `needs:changes`: review requested changes
-- `reviewed:approved`: review completed and approved
-- `agent-task`: issue intended for agent execution
+### Skills
+
+Skill definitions live in `skills/` with symlinks in `.claude/skills/`:
+
+| Skill | Description |
+|-------|-------------|
+| `build-feature` | Pick an assigned issue, implement it, and open a PR |
+| `fix-pr` | Address PR review feedback and re-label for review |
+| `issue` | Create a GitHub issue for a feature or bug |
+| `review-peer-prs` | Review and approve/request changes on peer PRs |
+| `unwind` | End-of-session reflection and discussion |
+| `work` | Continuous loop: fix PRs, review peers, build features |
+
+### Supported agents
+
+- **Claude Code** — reads from `.claude/skills/` (symlinks to `skills/`)
+- **Gemini CLI** — configured via `GEMINI.md` + `.gemini/settings.json`
+- **Codex** — follows `AGENTS.md` conventions
+
+### Adding a new skill
+
+```bash
+mkdir -p skills/my-skill
+# Write your SKILL.md with instructions
+cat > skills/my-skill/SKILL.md << 'EOF'
+# My Skill
+Instructions for the agent...
+EOF
+
+# Symlink for Claude Code
+mkdir -p .claude/skills/my-skill
+ln -s ../../../skills/my-skill/SKILL.md .claude/skills/my-skill/SKILL.md
+```
+
+## Multi-agent coordination
+
+Label-based workflow on GitHub:
+
+- `assigned:codex` / `assigned:claude` — ownership
+- `needs-review` — ready for peer agent review
+- `needs:changes` — review requested changes
+- `reviewed:approved` — review completed and approved
+- `agent-task` — issue intended for agent execution
 
 Typical lifecycle:
-1. Issue is labeled and assigned to one agent.
-2. Agent creates a task branch/worktree, implements, and opens PR.
-3. PR/issue are labeled `needs-review`.
-4. Peer agent reviews and either:
-- approves/merges (`reviewed:approved`)
-- requests updates (`needs:changes`)
-5. Original agent addresses feedback and re-labels for review.
+1. Issue is labeled and assigned to an agent
+2. Agent creates a branch, implements, and opens a PR
+3. PR is labeled `needs-review`
+4. Peer agent reviews and either approves or requests changes
+5. Original agent addresses feedback and re-labels
 
 ## Useful commands
 
-Run backend tests:
-
 ```bash
-cd backend
-pytest
-```
+# Run backend tests
+cd backend && pytest
 
-Run frontend tests:
+# Run frontend tests
+cd frontend && npm test
 
-```bash
-cd frontend
-npm test
-```
-
-Run E2E tests (requires the full app stack running):
-
-```bash
-# Start the stack first
+# Run E2E tests (stack must be running)
 docker compose up -d --build
+cd frontend && npx playwright test
 
-# Then run Playwright from the frontend directory — this is the authoritative E2E suite
-cd frontend
-npx playwright test
-```
+# Build frontend
+cd frontend && npm run build
 
-> **Adding new E2E tests:** All E2E specs live in `frontend/e2e/`. Add new spec files
-> there. The `frontend/playwright.config.js` controls test discovery and is what CI uses.
-> Do not add tests to the root-level `e2e/` directory — it is not wired to CI.
+# Stop everything
+docker compose down
 
-Skill files live in `skills/`. Claude Code reads from `.claude/skills/` via symlinks.
-To add a new skill, create `skills/<name>/SKILL.md` and symlink it:
-
-```bash
-mkdir -p .claude/skills/<name>
-ln -s ../../../skills/<name>/SKILL.md .claude/skills/<name>/SKILL.md
-```
-
-Build frontend:
-
-```bash
-cd frontend
-npm run build
+# Stop and remove database volume
+docker compose down -v
 ```
