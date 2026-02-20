@@ -23,3 +23,27 @@ repos:
         language: system
         pass_filenames: false
         files: ^frontend/src/.*\.(js|jsx)$
+
+      - id: backend-tests
+        name: backend tests
+        entry: bash -c 'cd backend && python -m pytest'
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
+
+      - id: frontend-unit-tests
+        name: frontend unit tests
+        entry: bash -c 'cd frontend && npx vitest run'
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
+
+      - id: e2e-tests
+        name: e2e tests
+        entry: bash -c 'cd frontend && npx playwright test'
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
