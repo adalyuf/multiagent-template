@@ -4,6 +4,8 @@ import * as topojson from 'topojson-client'
 import { numericToIso } from '../utils/isoMap'
 import { mapColorScale } from '../utils/colors'
 import { SkeletonChart } from './Skeleton'
+import ChartTooltip from './ChartTooltip'
+import { positionTooltip, showTooltip, hideTooltip } from '../utils/tooltipHelpers'
 
 const WORLD_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
 let worldMapPromise = null
@@ -20,9 +22,13 @@ async function getWorldMap(url) {
 
 export default function ChoroplethMap({ data, selectedCountry = '', onSelectCountry = () => {} }) {
   const svgRef = useRef()
+  const tooltipRef = useRef()
 
   useEffect(() => {
     if (!data) return
+
+    // Hide tooltip at start of each effect run
+    hideTooltip(tooltipRef.current)
 
     const dataMap = {}
     data.forEach(d => { dataMap[d.country_code] = d.per_100k })
@@ -71,6 +77,30 @@ export default function ChoroplethMap({ data, selectedCountry = '', onSelectCoun
             if (!iso) return
             onSelectCountry(iso === selectedCountry ? '' : iso)
           })
+          .on('mouseover', function (event, d) {
+            const iso = numericToIso(+d.id)
+            if (!iso) return
+            const val = dataMap[iso]
+            const tooltipEl = tooltipRef.current
+            if (!tooltipEl) return
+
+            let html = `<div style="color:var(--text-secondary);margin-bottom:2px">${iso}</div>`
+            html += `<div style="color:var(--text-primary)">${val != null ? val.toFixed(1) + ' per 100k' : 'No data'}</div>`
+            tooltipEl.innerHTML = html
+
+            showTooltip(tooltipEl)
+            const [mx, my] = d3.pointer(event, svgRef.current)
+            positionTooltip(tooltipEl, svgRef.current, mx, my)
+          })
+          .on('mousemove', function (event) {
+            const tooltipEl = tooltipRef.current
+            if (!tooltipEl) return
+            const [mx, my] = d3.pointer(event, svgRef.current)
+            positionTooltip(tooltipEl, svgRef.current, mx, my)
+          })
+          .on('mouseleave', function () {
+            hideTooltip(tooltipRef.current)
+          })
           .append('title')
           .text(d => {
             const iso = numericToIso(+d.id)
@@ -107,7 +137,10 @@ export default function ChoroplethMap({ data, selectedCountry = '', onSelectCoun
           <span style={{ color: 'var(--text-muted)', fontWeight: 400, fontSize: '0.65rem' }}>(per 100k, last 4 wk)</span>
         </h3>
       </div>
-      <svg ref={svgRef} style={{ width: '100%', height: 'auto' }} role="img" aria-label="World choropleth map of flu cases per 100k people" />
+      <div style={{ position: 'relative' }}>
+        <svg ref={svgRef} style={{ width: '100%', height: 'auto' }} role="img" aria-label="World choropleth map of flu cases per 100k people" />
+        <ChartTooltip ref={tooltipRef} />
+      </div>
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',

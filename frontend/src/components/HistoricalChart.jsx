@@ -3,14 +3,20 @@ import * as d3 from 'd3'
 import { seasonColors } from '../utils/colors'
 import { parseSeason } from '../utils/seasons'
 import { SkeletonChart } from './Skeleton'
+import ChartTooltip from './ChartTooltip'
+import { positionTooltip, showTooltip, hideTooltip, formatValue } from '../utils/tooltipHelpers'
 
 export default function HistoricalChart({ data, country = '', forecast = null, forecastUnavailable = false }) {
   const svgRef = useRef()
+  const tooltipRef = useRef()
   const gaussianBaseline = (forecast?.forecast || [])[0]
   const hasGaussianBaseline = Number.isFinite(gaussianBaseline?.gaussian_mean) && Number.isFinite(gaussianBaseline?.gaussian_stddev)
 
   useEffect(() => {
     if (!data || data.length === 0) return
+
+    // Hide tooltip at start of each effect run
+    hideTooltip(tooltipRef.current)
 
     const width = 560
     const height = 240
@@ -73,6 +79,26 @@ export default function HistoricalChart({ data, country = '', forecast = null, f
       .y(d => y(d.cases))
       .curve(d3.curveMonotoneX)
 
+    // Build lookup maps for tooltip
+    const seasonLookup = {}
+    seasons.forEach((season) => {
+      const points = bySeason.get(season) || []
+      const map = new Map()
+      points.forEach(d => {
+        if (d.week_offset >= 0 && d.week_offset <= 52) {
+          map.set(d.week_offset, d.cases)
+        }
+      })
+      seasonLookup[season] = map
+    })
+
+    const forecastLookup = new Map()
+    fcastPoints.forEach(d => {
+      if (d.weekOffset >= 0 && d.weekOffset <= 52) {
+        forecastLookup.set(d.weekOffset, d)
+      }
+    })
+
     seasons.forEach((season, i) => {
       const points = (bySeason.get(season) || [])
         .filter(d => d.week_offset >= 0 && d.week_offset <= 52)
@@ -83,6 +109,8 @@ export default function HistoricalChart({ data, country = '', forecast = null, f
       const isCurrent = i === seasons.length - 1
       svg.append('path')
         .datum(points)
+        .attr('class', 'season-line')
+        .attr('data-season', season)
         .attr('d', line)
         .attr('fill', 'none')
         .attr('stroke', seasonColors(season))
@@ -175,6 +203,157 @@ export default function HistoricalChart({ data, country = '', forecast = null, f
         .attr('text-anchor', 'end')
         .text('\u2191 CI extends beyond chart')
     }
+
+    let selectedSeason = null
+
+    function applySelection(season) {
+      svg.selectAll('.season-line').each(function () {
+        const el = d3.select(this)
+        const s = el.attr('data-season')
+        const isCurrent = s === seasons[seasons.length - 1]
+        if (season == null) {
+          el.attr('stroke-width', isCurrent ? 2.5 : 1)
+            .attr('opacity', isCurrent ? 1 : 0.4)
+        } else if (s === season) {
+          el.attr('stroke-width', 3.5).attr('opacity', 1)
+        } else {
+          el.attr('stroke-width', 0.8).attr('opacity', 0.15)
+        }
+      })
+    }
+
+    function buildTooltipHtml(clampedWeek, selSeason) {
+      let html = `<div style="margin-bottom:4px;color:var(--text-secondary)">Week ${clampedWeek}</div>`
+      seasons.forEach((season) => {
+        const color = seasonColors(season)
+        const val = seasonLookup[season]?.get(clampedWeek)
+        if (val == null) return
+        const isSelected = selSeason != null && season === selSeason
+        const isDimmed = selSeason != null && season !== selSeason
+        const rowStyle = isSelected
+          ? 'font-weight:700;padding-left:6px;border-left:2px solid var(--accent-cyan)'
+          : ''
+        const valColor = isDimmed ? 'var(--text-dim)' : 'var(--text-primary)'
+        const labelColor = isDimmed ? 'var(--text-dim)' : 'var(--text-secondary)'
+        html += `<div style="display:flex;align-items:center;gap:6px;${rowStyle}">`
+        html += `<span style="width:12px;height:2px;background:${color};flex-shrink:0"></span>`
+        html += `<span style="color:${labelColor}">${season}:</span> `
+        html += `<span style="color:${valColor};margin-left:auto">${formatValue(val)}</span>`
+        html += `</div>`
+      })
+
+      const fc = forecastLookup.get(clampedWeek)
+      if (fc) {
+        const isDimmed = selSeason != null && selSeason !== '__forecast__'
+        const valColor = isDimmed ? 'var(--text-dim)' : 'var(--text-primary)'
+        const labelColor = isDimmed ? 'var(--text-dim)' : '#f59e0b'
+        html += `<div style="display:flex;align-items:center;gap:6px;margin-top:2px">`
+        html += `<span style="width:12px;height:2px;background:#f59e0b;flex-shrink:0;border-top:1px dashed #f59e0b"></span>`
+        html += `<span style="color:${labelColor}">Forecast:</span> `
+        html += `<span style="color:${valColor};margin-left:auto">${formatValue(fc.forecast)}</span>`
+        html += `</div>`
+      }
+      return html
+    }
+
+    // --- Crosshair + Tooltip interactivity ---
+    const crosshair = svg.append('line')
+      .attr('class', 'crosshair')
+      .attr('y1', margin.top)
+      .attr('y2', height - margin.bottom)
+      .attr('stroke', 'var(--text-dim)')
+      .attr('stroke-width', 1)
+      .attr('stroke-dasharray', '4,3')
+      .style('opacity', 0)
+
+    let pinned = false
+
+    svg.append('rect')
+      .attr('class', 'overlay')
+      .attr('x', margin.left)
+      .attr('y', margin.top)
+      .attr('width', width - margin.left - margin.right)
+      .attr('height', height - margin.top - margin.bottom)
+      .attr('fill', 'transparent')
+      .attr('cursor', 'crosshair')
+      .on('mousemove', function (event) {
+        if (pinned) return
+        const [mx] = d3.pointer(event, this)
+        const week = Math.round(x.invert(mx + margin.left))
+        const clampedWeek = Math.max(0, Math.min(52, week))
+        const cx = x(clampedWeek)
+
+        crosshair.attr('x1', cx).attr('x2', cx).style('opacity', 1)
+
+        const tooltipEl = tooltipRef.current
+        if (!tooltipEl) return
+
+        tooltipEl.innerHTML = buildTooltipHtml(clampedWeek, selectedSeason)
+        showTooltip(tooltipEl)
+        positionTooltip(tooltipEl, svgRef.current, cx, margin.top)
+      })
+      .on('mouseleave', function () {
+        if (pinned) return
+        crosshair.style('opacity', 0)
+        hideTooltip(tooltipRef.current)
+      })
+      .on('click', function (event) {
+        if (pinned) {
+          pinned = false
+          selectedSeason = null
+          applySelection(null)
+          crosshair
+            .attr('stroke', 'var(--text-dim)')
+            .attr('stroke-dasharray', '4,3')
+          const [mx] = d3.pointer(event, this)
+          if (mx < 0 || mx > width - margin.left - margin.right) {
+            crosshair.style('opacity', 0)
+            hideTooltip(tooltipRef.current)
+          }
+        } else {
+          pinned = true
+          crosshair
+            .attr('stroke', 'var(--accent-cyan)')
+            .attr('stroke-dasharray', 'none')
+
+          // Detect closest season to click position (pointer in viewBox coords)
+          const [svgX, svgY] = d3.pointer(event, svg.node())
+          const week = Math.round(x.invert(svgX))
+          const clampedWeek = Math.max(0, Math.min(52, week))
+          const mouseY = svgY
+
+          let bestSeason = null
+          let bestDist = Infinity
+          seasons.forEach((season) => {
+            const val = seasonLookup[season]?.get(clampedWeek)
+            if (val == null) return
+            const dist = Math.abs(y(val) - mouseY)
+            if (dist < bestDist) {
+              bestDist = dist
+              bestSeason = season
+            }
+          })
+
+          // Also check forecast
+          const fc = forecastLookup.get(clampedWeek)
+          if (fc) {
+            const dist = Math.abs(y(fc.forecast) - mouseY)
+            if (dist < bestDist) {
+              bestDist = dist
+              bestSeason = '__forecast__'
+            }
+          }
+
+          selectedSeason = bestSeason
+          applySelection(selectedSeason)
+
+          // Re-render tooltip with selection
+          const tooltipEl = tooltipRef.current
+          if (tooltipEl) {
+            tooltipEl.innerHTML = buildTooltipHtml(clampedWeek, selectedSeason)
+          }
+        }
+      })
   }, [data, forecast])
 
   if (!data) {
@@ -216,7 +395,10 @@ export default function HistoricalChart({ data, country = '', forecast = null, f
           </span>
         )}
       </div>
-      <svg ref={svgRef} style={{ width: '100%', height: 'auto' }} role="img" aria-label="Line chart comparing historical seasonal flu cases with forecast" />
+      <div style={{ position: 'relative' }}>
+        <svg ref={svgRef} style={{ width: '100%', height: 'auto' }} role="img" aria-label="Line chart comparing historical seasonal flu cases with forecast" />
+        <ChartTooltip ref={tooltipRef} />
+      </div>
     </div>
   )
 }
