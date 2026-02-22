@@ -126,7 +126,8 @@ RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/
   -x
 
 # Install AI Agents and tooling
-RUN npm install -g @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}
+ENV PATH=/home/node/.local/bin:$PATH
+RUN curl -fsSL https://claude.ai/install.sh | bash -s -- ${CLAUDE_CODE_VERSION}
 RUN npm i -g @openai/codex
 RUN npm install -g @railway/cli
 
