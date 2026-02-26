@@ -139,6 +139,9 @@ RUN npm install -g @google/gemini-cli
 RUN npm install -g opencode-ai
 RUN npm install -g @kilocode/cli
 
+# Add BMAD, only BMM module
+RUN npx bmad-method install --directory . --modules bmm --tools claude-code --yes
+
 # Pre-install frontend dependencies (staged for fast copy into bind-mounted workspace)
 COPY --chown=node:node frontend/package.json frontend/package-lock.json /opt/frontend-deps/
 RUN cd /opt/frontend-deps && npm ci && npx playwright install
